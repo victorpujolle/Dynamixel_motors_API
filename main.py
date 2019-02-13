@@ -25,22 +25,26 @@ if __name__ == '__main__':
 
     # ----------------------------------------- MOTOR TESTING -----------------------------------------
     # motors existence
-    all_motors_ok, details = ArmAPI.test_motors()
+    all_motors_ok, details, details_msg = ArmAPI.test_motors()
     print('--- Are all the motors connected ? :', all_motors_ok, '\n--- Motors details :', details)
+    #print(details_msg)
     # -------------------------------------------------------------------------------------------------
 
+    # --------------------------------------- MOUVEMENTS TESTS ----------------------------------------
+    ArmAPI.verbose_messages = True
+    ArmAPI.initialisation_speed()
+    ArmAPI.read_state()
+    for i in range(len(ArmAPI.motors_angles_byte)):
+        print('motor', i, 'angle :', ArmAPI.motors_angles_byte[i]*ArmAPI.ANGLE_UNIT)
 
-
-
-
-    # --------------------------------------- MOUVEMENTS  TESTS ---------------------------------------
-    #ArmAPI.initialisation_speed()
-    #ArmAPI.set_goal_position(0, 30)
-    #ArmAPI.set_goal_position(3, 150)
-    #ArmAPI.set_goal_position(4, 50)
+    #ArmAPI.initialisation_position()
+    #ArmAPI.set_goal_position(0, 60)
+    #ArmAPI.set_goal_position(3, 30)
+    #ArmAPI.set_goal_position(4, 240)
     #ArmAPI.set_goal_position(5, 150)
-    #ArmAPI.set_goal_position(6, 150)
+    #ArmAPI.set_goal_position(6, 200)
     # -------------------------------------------------------------------------------------------------
+
 
 
 

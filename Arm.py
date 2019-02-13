@@ -23,7 +23,7 @@ class Arm(DXSerialAPI):
         self.motors_angles_byte = [] # the angles of each motors (byte units used)
 
         # class constant init
-        self.ANGLES_INIT = np.array([150, 100, 0.0, 250, 0.0, 70])  # angles initialisation of each joints
+        self.ANGLES_INIT = np.array([60, 75, 300, 40, 140, 60])  # angles initialisation of each JOINTS (not motors!!!!)
         self.DX_SPEED = 100  # speed of the motors
 
     def test_multiple_id(self, list_id):
@@ -34,18 +34,20 @@ class Arm(DXSerialAPI):
         """
         exist = []
         for id in list_id:
-            exists, message = self._PING(id)
+            exists, _ = self._PING(id)
             exist.append(exists)
 
-        return exist, message
+        return exist
 
     def test_motors(self):
         """
         this function test if all the motors that are supposed to be in the arm exist
         this function use the variable motors_id, be sure to correctly initialize this variable
         :return: all_motors_exists, details: all_motors_exists is True if all motors exists, False otherwise, details give you details about which motors exist or not
+                 details_msg: the responces of each motors
         """
         details = []
+        details_msg = []
         all_motors_exists = True
         if self.motors_id == None:
             raise ValueError('self.motors_id is None, please link you motors')
@@ -53,9 +55,10 @@ class Arm(DXSerialAPI):
             for id in self.motors_id:
                 exists, message = self._PING(id)
                 details.append(exists)
+                details_msg.append(message)
                 if not(exists): all_motors_exists = False
 
-        return all_motors_exists, details
+        return all_motors_exists, details, details_msg
 
     def read_state(self):
         """
@@ -80,29 +83,34 @@ class Arm(DXSerialAPI):
 
         return 0
 
+    def write_single_joint_position(self, joint_id, angle):
+        """
+        :param joint_id: the id of the JOINT
+        :param angle: the angle you want for the joint
+        depending of the configuration of your robot, you have to rewrite this function
+        """
+        if joint_id == 0: self.set_goal_position(0, angle)
+        if joint_id == 1:
+            self.set_goal_position(1, angle)
+            self.set_goal_position(2, 300 - angle)
+
+        if joint_id == 2: self.set_goal_position(3, angle)
+        if joint_id == 3: self.set_goal_position(4, angle)
+        if joint_id == 4: self.set_goal_position(5, angle)
+        if joint_id == 5: self.set_goal_position(6, angle)
+        if joint_id == 6: self.set_goal_position(7, angle)
+
     def initialisation_position(self, init_angles=None):
         """
-        This function initialize the anlge of each JOINT (this is actualy tricky if you have multiple motors for the same joint, this if why you should
-        REWRITE THE UGLY SUB FUNCTION WITH ALL THE IF STATEMENTS for your robot (sorry but this is the more robust and simple way to sovle this problem)
+        This function initialize the angle of each JOINT (this is actualy tricky if you have multiple motors for the same joint, this if why you should
+        REWRITE THE UGLY FUNCTION _write_single_joint_position WITH ALL THE IF STATEMENTS for your robot (sorry but this is the more robust and simple way to sovle this problem)
         :param init_angles: init_angles[i] is the angle (in degree) of the i-th joint
         """
-        def write_single_joint_position(joint_id, angle):
-            # yes you have to rewrite this functions for your robot ;)
-            if joint_id == 0: self.set_goal_position(0, angle)
-            if joint_id == 1:
-                self.set_goal_position(1, angle)
-                self.set_goal_position(2, 300-angle)
-
-            if joint_id == 2: self.set_goal_position(3, angle)
-            if joint_id == 3: self.set_goal_position(4, angle)
-            if joint_id == 4: self.set_goal_position(5, angle)
-            if joint_id == 5: self.set_goal_position(6, angle)
-            if joint_id == 6: self.set_goal_position(7, angle)
 
         angles = self.ANGLES_INIT if init_angles == None else init_angles
 
-        for joint in self.joint_number:
-            write_single_joint_position(joint, angles[joint])
+        for joint in range(self.joint_number):
+            self.write_single_joint_position(joint, angles[joint])
 
         return 0
 

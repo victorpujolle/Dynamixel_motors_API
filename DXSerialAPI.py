@@ -1,5 +1,6 @@
 import serial
 from utils import *
+import warnings
 
 class DXSerialAPI(serial.Serial):
     """
@@ -10,7 +11,7 @@ class DXSerialAPI(serial.Serial):
     documentation : http://www.besttechnology.co.jp/modules/knowledge/?Dynamixel%E9%80%9A%E4%BF%A1%E3%83%97%E3%83%AD%E3%83%88%E3%82%B3%E3%83%AB
     """
     
-    def __init__(self, PORT_NAME, BAUDRATE, TIME_OUT=0.001):
+    def __init__(self, PORT_NAME, BAUDRATE, TIME_OUT=0.001, verbose_messages=False):
         """
         :param PORT_NAME: name of the port you want to open
         :param BAUDRATE: (int) Baud rate such as 9600 or 115200 etc.
@@ -22,12 +23,18 @@ class DXSerialAPI(serial.Serial):
 
         # basic instruction set definition
         self.INSTRUCTION_SET = {'PING' : 0x01, 'READ_DATA' : 0x02, 'WRITE_DATA' : 0x03, 'REG_WRITE' : 0x04, 'ACTION' : 0x05, 'RESET' : 0x06, 'SYNC_WRITE' : 0x83}
+        self.INSTRUCTION_SET_reversed = {'0x01' : 'PING', '0x02' : 'READ_DATA', '0x03' : 'WRITE_DATA', '0x04' : 'REG_WRITE', '0x05' : 'ACTION', '0x06' : 'RESET', '0x83' : 'SYNC_WRITE'}
+
         self.ERROR_SET = {'INPUT_VOLTAGE' : 0x00, 'ANGLE_LIMIT' : 0x01, 'OVERHEATING' : 0x02, 'RANGE' : 0x03, 'CHECKSUM' : 0x04, 'OVERLOAD' : 0x05, 'INSTRUCTION' : 0x06, 'NO_ERROR' : 0x07}
+        self.ERROR_SET_reversed = {'0x00' : 'INPUT_VOLTAGE', '0x01' : 'ANGLE_LIMIT', '0x02' : 'OVERHEATING', '0x03' : 'RANGE', '0x04' : 'CHECKSUM', '0x05' : 'OVERLOAD', '0x06' : 'INSTRUCTION', '0x07' : 'NO_ERROR'}
 
         # constants of the motors
         self.ANGLE_UNIT = 0.29  # conversion unit between bytes and degrees
         self.SPEED_UNIT = 0.111  # conversion unit between bytes and rpm
         self.TORQUE_UNIT = 1 / 1023 * 100  # conversion unit between bytes and torque
+
+        #options
+        self.verbose_messages = verbose_messages # if set to True all messages sended will also be printed
 
     # ------------- HELPERS -------------
     def _send_message(self, device_id, instruction, *args):
@@ -53,7 +60,19 @@ class DXSerialAPI(serial.Serial):
         message = bytearray(message)
 
         self.write(message)
-        #print('write message function : ', message)
+
+        if self.verbose_messages:
+            # message base 10
+            print('message b10 :', end=' ')
+            for x in message: print(x, end='\\')
+            # message readable
+            print('\nmessage --- :', end=' ')
+            print('0xFF\\0xFF\\id:{}\\len:{}\\{}'.format(device_id, length, self.INSTRUCTION_SET_reversed['0x{:02x}'.format(instruction)]), end='\\')
+            for x in args: print(x, end='\\')
+            print('checksum:{}'.format(checksum))
+            # message hexadecimal
+            print('message b16 :', message, '\n')
+
         return 0
 
     def _print_message(self, device_id, instruction, *args):
@@ -74,7 +93,7 @@ class DXSerialAPI(serial.Serial):
 
         message = bytearray(message)
         print('message b10 :', end=' ')
-        for x in message: print(x, end= '/')
+        for x in message: print(x, end= '\\')
         print('\nmessage b16 :',message, '\n')
         return 0
 
@@ -92,12 +111,15 @@ class DXSerialAPI(serial.Serial):
         :return:
         """
 
-        x = self.read_until(terminator=b'\xff\xff')                           # the begining of the message
-        id = self.read()                                                      # the id of the device
-        length = self.read()                                                  # the number of optional parameters N + 2
-        error = self.read()                                                   # the error code
+        x = self.read_until(terminator=b'\xff\xff')                             # the begining of the message
+        id = self.read()                                                        # the id of the device
+        length = self.read()                                                    # the number of optional parameters N + 2
+        error = self.read()                                                     # error ?
         parameters = self.read(size=int.from_bytes(length,byteorder='big') -2 ) # optional parameters
-        checksum = self.read()                                                # checksum
+        checksum = self.read()                                                  # checksum
+
+        if error != 0x00 and error != b'':
+            warnings.warn('The motor {} has responded the error number {}'.format(id,parameters))
 
         return id, length, error, parameters, checksum
     # -----------------------------------
@@ -147,7 +169,6 @@ class DXSerialAPI(serial.Serial):
             return 1
         else:
             self._send_message(device_id, self.INSTRUCTION_SET['WRITE_DATA'], *args)
-            self._print_message(device_id, self.INSTRUCTION_SET['WRITE_DATA'], *args)
             return 0
 
     def _REG_WRITE(self, device_id, *args):
