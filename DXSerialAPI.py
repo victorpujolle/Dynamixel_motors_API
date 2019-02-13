@@ -60,6 +60,7 @@ class DXSerialAPI(serial.Serial):
         """
         Will do the same that _send_message but only print the message in the console instead of sending it
         """
+        print(args)
         length = len(args) + 2  # length of the message
         message = [0xFF, 0xFF, device_id, length, instruction]
         checksum = device_id + length + instruction
@@ -72,8 +73,9 @@ class DXSerialAPI(serial.Serial):
         message.append(checksum)
 
         message = bytearray(message)
-        for x in message: print(x)
-        print('print message function : ',message)
+        print('message b10 :', end=' ')
+        for x in message: print(x, end= '/')
+        print('\nmessage b16 :',message, '\n')
         return 0
 
     def _receive_message(self):
@@ -145,7 +147,7 @@ class DXSerialAPI(serial.Serial):
             return 1
         else:
             self._send_message(device_id, self.INSTRUCTION_SET['WRITE_DATA'], *args)
-            #self._print_message(device_id, self.INSTRUCTION_SET['WRITE_DATA'], *args)
+            self._print_message(device_id, self.INSTRUCTION_SET['WRITE_DATA'], *args)
             return 0
 
     def _REG_WRITE(self, device_id, *args):
@@ -456,3 +458,28 @@ class DXSerialAPI(serial.Serial):
         else:
             raise ValueError('the moving speed should be between [0 and 1023 = 0x3FF]')
         return 0
+
+    def set_LED_on(self, id):
+        """
+        This function turn on the LED
+        /!\ this function return the response but also MODIFY THE SETTINGS OF THE MOTOR, be extra cautious
+        :param id: id of the motor
+        :return response: the responce given be the motor (id)
+        """
+        self._WRITE_DATA(id, 0x19, 1)
+        response = self._receive_message()
+        return response
+
+    def set_LED_off(self, id):
+        """
+        This function turn off the LED
+        /!\ this function return the response but also MODIFY THE SETTINGS OF THE MOTOR, be extra cautious
+        :param id: id of the motor
+        :return response: the responce given be the motor (id)
+        """
+        self._WRITE_DATA(id, 0x19, 0)
+        response = self._receive_message()
+        return response
+
+    # -----------------------------------
+
