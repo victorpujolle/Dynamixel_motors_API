@@ -1,5 +1,6 @@
 from DXSerialAPI import *
 from Arm import *
+import time
 
 
 if __name__ == '__main__':
@@ -28,35 +29,17 @@ if __name__ == '__main__':
     print('--- Are all the motors connected ? :', all_motors_ok, '\n--- Motors details :', details)
     # -------------------------------------------------------------------------------------------------
 
-    # -------------------------------------- COMMUNICATION TESTS --------------------------------------
-    #
-    #voltage = ArmAPI.read_present_voltage(id)
-    #temperature = ArmAPI.read_internal_temperature(id)
-    #present_position = ArmAPI.read_present_position(id)
-    #moving_speed = ArmAPI.read_moving_speed(id)
-    #clock_angle_limit = ArmAPI.read_angle_limit_clockwise_byte(id)
-    #counterclock_angle_limit = ArmAPI.read_angle_limit_counterclockwise_byte(id)
-    #
-    #print('voltage       :', voltage, 'V')
-    #print('temperature   :', temperature, 'C')
-    #print('position      :', present_position, '°')
-    #print('moving speed  :', moving_speed, 'rmp')
-    #print('limit angle - :', clock_angle_limit)
-    #print('limit angle + :', counterclock_angle_limit)
-    # -------------------------------------------------------------------------------------------------
 
-    # ---------------------------------------- INITIALISATION -----------------------------------------
-    print('--- INITIALISATION ---')
-    ArmAPI.read_state()
-    print('angles limit :', ArmAPI.motors_angle_limits_byte)
-    print('torque limit :', ArmAPI.motors_torque_limits_byte)
-    print('position :', ArmAPI.motors_angles_byte)
-    # -------------------------------------------------------------------------------------------------
+
+
 
     # --------------------------------------- MOUVEMENTS  TESTS ---------------------------------------
-    ArmAPI.initialisation_speed()
-    ArmAPI.set_goal_position(1, 100)
-    ArmAPI.set_goal_position(2,100)
+    #ArmAPI.initialisation_speed()
+    #ArmAPI.set_goal_position(0, 30)
+    #ArmAPI.set_goal_position(3, 150)
+    #ArmAPI.set_goal_position(4, 50)
+    #ArmAPI.set_goal_position(5, 150)
+    #ArmAPI.set_goal_position(6, 150)
     # -------------------------------------------------------------------------------------------------
 
 

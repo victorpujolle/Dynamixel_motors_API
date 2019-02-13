@@ -37,7 +37,7 @@ class Arm(DXSerialAPI):
             exists, message = self._PING(id)
             exist.append(exists)
 
-        return exist
+        return exist, message
 
     def test_motors(self):
         """
@@ -76,8 +76,7 @@ class Arm(DXSerialAPI):
         """
         speed = self.DX_SPEED if init_speed == None else init_speed
 
-        for motor in self.motors_id:
-            self.set_moving_speed(motor, speed)
+        self.set_moving_speed(0xFE, speed) # 0xFE is the broadcast ID, all the motors will read the signal
 
         return 0
 
