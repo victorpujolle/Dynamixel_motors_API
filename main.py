@@ -40,6 +40,8 @@ if __name__ == '__main__':
 
     ArmAPI.initialisation_position()
 
+    # TODO : gestion des erreurs
+
     # -------------------------------------------------------------------------------------------------
 
 
