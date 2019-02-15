@@ -31,18 +31,15 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------------------------------
 
     # --------------------------------------- MOUVEMENTS TESTS ----------------------------------------
-    ArmAPI.verbose_messages = True
     ArmAPI.initialisation_speed()
-    ArmAPI.read_state()
-    for i in range(len(ArmAPI.motors_angles_byte)):
-        print('motor', i, 'angle :', ArmAPI.motors_angles_byte[i]*ArmAPI.ANGLE_UNIT)
+    ArmAPI.read_full_state()
 
-    #ArmAPI.initialisation_position()
-    #ArmAPI.set_goal_position(0, 60)
-    #ArmAPI.set_goal_position(3, 30)
-    #ArmAPI.set_goal_position(4, 240)
-    #ArmAPI.set_goal_position(5, 150)
-    #ArmAPI.set_goal_position(6, 200)
+    for i in range(len(ArmAPI.motors_angles_byte)):
+        print('motor', i, 'angle :', ArmAPI.motors_angles_byte[i] * ArmAPI.ANGLE_UNIT, 'speed setting :', ArmAPI.motors_speed_byte[i] * ArmAPI.SPEED_UNIT, 'torque limit :', ArmAPI.motors_torque_limits_byte[i] * ArmAPI.TORQUE_UNIT)
+
+
+    ArmAPI.initialisation_position()
+
     # -------------------------------------------------------------------------------------------------
 
 

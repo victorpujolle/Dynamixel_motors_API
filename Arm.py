@@ -21,9 +21,10 @@ class Arm(DXSerialAPI):
         self.motors_angle_limits_byte = [] # the i-th element this list will contains [angle_clockwise_limit , angle_counterclockwise_limit] of the i-th motor (byte units used)
         self.motors_torque_limits_byte = [] # the i-th element this list will contains [max torque] of the i-th motor (byte units used)
         self.motors_angles_byte = [] # the angles of each motors (byte units used)
+        self.motors_speed_byte = [] # the speed of each motors (byte unit used) (the speed of the motors has to be initialized first)
 
         # class constant init
-        self.ANGLES_INIT = np.array([60, 75, 300, 40, 140, 60])  # angles initialisation of each JOINTS (not motors!!!!)
+        self.ANGLES_INIT = np.array([250, 100, 140, 220, 145, 220])  # angles initialisation of each JOINTS (not motors!!!!)
         self.DX_SPEED = 100  # speed of the motors
 
     def test_multiple_id(self, list_id):
@@ -60,7 +61,7 @@ class Arm(DXSerialAPI):
 
         return all_motors_exists, details, details_msg
 
-    def read_state(self):
+    def read_full_state(self):
         """
         This function initializes the state of each motors, with there constrains
         """
@@ -69,6 +70,7 @@ class Arm(DXSerialAPI):
             self.motors_angle_limits_byte.append([self.read_angle_limit_clockwise_byte(motor), self.read_angle_limit_counterclockwise_byte(motor)])
             self.motors_torque_limits_byte.append(self.read_max_torque_limit_byte(motor))
             self.motors_angles_byte.append(self.read_present_position_byte(motor))
+            self.motors_speed_byte.append(self.read_moving_speed_byte(motor))
 
         return 0
 
@@ -78,7 +80,6 @@ class Arm(DXSerialAPI):
         :param init_speed: the speed you want (in rmp) (if None, the class default speed will be taken)
         """
         speed = self.DX_SPEED if init_speed == None else init_speed
-
         self.set_moving_speed(0xFE, speed) # 0xFE is the broadcast ID, all the motors will read the signal
 
         return 0

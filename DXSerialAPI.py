@@ -25,13 +25,12 @@ class DXSerialAPI(serial.Serial):
         self.INSTRUCTION_SET = {'PING' : 0x01, 'READ_DATA' : 0x02, 'WRITE_DATA' : 0x03, 'REG_WRITE' : 0x04, 'ACTION' : 0x05, 'RESET' : 0x06, 'SYNC_WRITE' : 0x83}
         self.INSTRUCTION_SET_reversed = {'0x01' : 'PING', '0x02' : 'READ_DATA', '0x03' : 'WRITE_DATA', '0x04' : 'REG_WRITE', '0x05' : 'ACTION', '0x06' : 'RESET', '0x83' : 'SYNC_WRITE'}
 
-        self.ERROR_SET = {'INPUT_VOLTAGE' : 0x00, 'ANGLE_LIMIT' : 0x01, 'OVERHEATING' : 0x02, 'RANGE' : 0x03, 'CHECKSUM' : 0x04, 'OVERLOAD' : 0x05, 'INSTRUCTION' : 0x06, 'NO_ERROR' : 0x07}
-        self.ERROR_SET_reversed = {'0x00' : 'INPUT_VOLTAGE', '0x01' : 'ANGLE_LIMIT', '0x02' : 'OVERHEATING', '0x03' : 'RANGE', '0x04' : 'CHECKSUM', '0x05' : 'OVERLOAD', '0x06' : 'INSTRUCTION', '0x07' : 'NO_ERROR'}
 
         # constants of the motors
         self.ANGLE_UNIT = 0.29  # conversion unit between bytes and degrees
         self.SPEED_UNIT = 0.111  # conversion unit between bytes and rpm
-        self.TORQUE_UNIT = 1 / 1023 * 100  # conversion unit between bytes and torque
+        self.TORQUE_UNIT = 1 / 1023 * 100  # conversion unit between bytes and torque (in %)
+        self.VOLTAGE_UNIT = 0.1 # convertion unit between bytes and volt
 
         #options
         self.verbose_messages = verbose_messages # if set to True all messages sended will also be printed
@@ -116,12 +115,15 @@ class DXSerialAPI(serial.Serial):
         length = self.read()                                                    # the number of optional parameters N + 2
         error = self.read()                                                     # error ?
         parameters = self.read(size=int.from_bytes(length,byteorder='big') -2 ) # optional parameters
-        checksum = self.read()                                                  # checksum
+        checksum = int.from_bytes(self.read(),byteorder='big')                  # checksum
 
-        if error != 0x00 and error != b'':
-            warnings.warn('The motor {} has responded the error number {}'.format(id,parameters))
+
+        # error test
+        if error != b'\x00' and error != b'':
+            warnings.warn('The motor {} has responded the error number {}'.format(id,error))
 
         return id, length, error, parameters, checksum
+
     # -----------------------------------
 
     # ---------- INSTRUCTIONS -----------
@@ -236,7 +238,7 @@ class DXSerialAPI(serial.Serial):
         :return moving_speed: the moving speed read in the motor in rpm
         """
         raw_response = self._READ_DATA(id, 0x20, 2)
-        return round(int.from_bytes(raw_response[3], byteorder='little') * 0.111, 0)
+        return round(int.from_bytes(raw_response[3], byteorder='little') * self.SPEED_UNIT, 0)
 
     def read_moving_speed_byte(self, id):
         """
@@ -254,7 +256,7 @@ class DXSerialAPI(serial.Serial):
         :return position: the current position of the motor in degree
         """
         raw_response = self._READ_DATA(id, 0x24, 2)
-        return round(int.from_bytes(raw_response[3], byteorder='little') * 0.29, 0)
+        return round(int.from_bytes(raw_response[3], byteorder='little') * self.ANGLE_UNIT, 0)
 
     def read_present_position_byte(self, id):
         """
@@ -265,18 +267,36 @@ class DXSerialAPI(serial.Serial):
         raw_response = self._READ_DATA(id, 0x24, 2)
         return int.from_bytes(raw_response[3], byteorder='little')
 
-    def read_present_speed(self, id):
+    def read_goal_position(self, id):
+        """
+                This function read the moving speed of the motor (id)
+                :param id: id of the motor
+                :return position: the current position of the motor in degree
+                """
+        raw_response = self._READ_DATA(id, 0x1E, 2)
+        return round(int.from_bytes(raw_response[3], byteorder='little') * self.ANGLE_UNIT, 0)
+
+    def read_goal_position_byte(self, id):
         """
         This function read the moving speed of the motor (id)
+        :param id: id of the motor
+        :return position: the current position of the motor in degree
+        """
+        raw_response = self._READ_DATA(id, 0x1E, 2)
+        return int.from_bytes(raw_response[3], byteorder='little')
+
+    def read_present_speed(self, id):
+        """
+        This function read the moving speed of the motor (id) (the speed that the motor has now)
         :param id: id of the motor
         :return present_speed: the present moving speed of the motor in rpm
         """
         raw_response = self._READ_DATA(id, 0x26, 2)
-        return round(int.from_bytes(raw_response[3], byteorder='little') * 0.111, 0)
+        return round(int.from_bytes(raw_response[3], byteorder='little') * self.SPEED_UNIT, 0)
 
     def read_present_speed_byte(self, id):
         """
-        This function read the moving speed of the motor (id)
+        This function read the moving speed of the motor (id) (the speed that the motor has now)
         :param id: id of the motor
         :return present_speed: the present moving speed of the motor in rpm
         """
@@ -299,7 +319,7 @@ class DXSerialAPI(serial.Serial):
         :return voltage: the voltage of the motor (id) in Volt
         """
         raw_response = self._READ_DATA(id, 0x2A, 1)
-        return int.from_bytes(raw_response[3], byteorder='little') / 10
+        return int.from_bytes(raw_response[3], byteorder='little') * self.VOLTAGE_UNIT
 
     def read_angle_limit_clockwise(self,id):
         """
@@ -308,7 +328,7 @@ class DXSerialAPI(serial.Serial):
         :return angle: clockwise Angle Limit in degree
         """
         raw_response = self._READ_DATA(id, 0x06, 2)
-        return round(int.from_bytes(raw_response[3], byteorder='little') * 0.29, 0)
+        return round(int.from_bytes(raw_response[3], byteorder='little') * self.ANGLE_UNIT, 0)
 
     def read_angle_limit_counterclockwise(self,id):
         """
@@ -317,7 +337,7 @@ class DXSerialAPI(serial.Serial):
         :return angle: conterclockwise Angle Limit in degree
         """
         raw_response = self._READ_DATA(id, 0x08, 2)
-        return round(int.from_bytes(raw_response[3], byteorder='little') * 0.29, 0)
+        return round(int.from_bytes(raw_response[3], byteorder='little') * self.ANGLE_UNIT, 0)
 
     def read_angle_limit_clockwise_byte(self,id):
         """
@@ -344,7 +364,7 @@ class DXSerialAPI(serial.Serial):
         :return angle: clockwise Angle Limit in %
         """
         raw_response = self._READ_DATA(id, 0x0E, 2)
-        return round(int.from_bytes(raw_response[3], byteorder='little') / 1023 *100, 0)
+        return round(int.from_bytes(raw_response[3], byteorder='little') * self.TORQUE_UNIT, 0)
 
     def read_max_torque_limit_byte(self,id):
         """
@@ -369,7 +389,7 @@ class DXSerialAPI(serial.Serial):
             if moving_speed == 0:
                 moving_speed_byte = 0
             else:
-                moving_speed_byte = int(moving_speed / 0.111)
+                moving_speed_byte = int(moving_speed / self.SPEED_UNIT)
 
             var = pseudo_conversion(moving_speed_byte)
             self._WRITE_DATA(id, 0x20, *var)
@@ -410,7 +430,7 @@ class DXSerialAPI(serial.Serial):
             if position == 0:
                 position_byte = 0
             else:
-                position_byte = int(position / 0.29)
+                position_byte = int(position / self.ANGLE_UNIT)
 
             var = pseudo_conversion(position_byte)
             self._WRITE_DATA(id, 0x1E, *var)
@@ -449,7 +469,7 @@ class DXSerialAPI(serial.Serial):
         :return response: the responce given be the motor (id)
         """
         if 0 <= torque <= 100:
-            torque_byte = int(torque /100 * 1023)
+            torque_byte = int(torque / self.TORQUE_UNIT)
 
             var = pseudo_conversion(torque_byte)
             self._WRITE_DATA(id, 0x0E, *var)
