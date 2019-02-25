@@ -10,7 +10,7 @@ if __name__ == '__main__':
     # open COM3, baudrate 1000000
     PORT_NAME = 'COM3'
     BAUDRATE = 1000000
-    TIME_OUT = 0.1
+    TIME_OUT = 0.0001
     #motorsAPI = DXSerialAPI(PORT_NAME, BAUDRATE, TIMEOUT=TIME_OUT)
     # -------------------------------------------------------------------------------------------------
 
@@ -34,14 +34,11 @@ if __name__ == '__main__':
     ArmAPI.initialisation_speed()
     ArmAPI.read_full_state()
 
-    for i in range(len(ArmAPI.motors_angles_byte)):
-        print('motor', i, 'angle :', ArmAPI.motors_angles_byte[i] * ArmAPI.ANGLE_UNIT, 'speed setting :', ArmAPI.motors_speed_byte[i] * ArmAPI.SPEED_UNIT, 'torque limit :', ArmAPI.motors_torque_limits_byte[i] * ArmAPI.TORQUE_UNIT)
-
-
     ArmAPI.initialisation_position()
 
-    # TODO : gestion des erreurs
+    ArmAPI.calculate_forward_kinematics_matrix()
 
+    ArmAPI.display_3d_robot()
     # -------------------------------------------------------------------------------------------------
 
 

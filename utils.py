@@ -25,6 +25,4 @@ def pseudo_conversion(n, length_res=2):
         while len(res) < length_res:
             res.append(0)
 
-    print(res)
-
     return res
