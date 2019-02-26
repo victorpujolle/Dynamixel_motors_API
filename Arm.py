@@ -33,14 +33,17 @@ class Arm(DXSerialAPI):
         self.LINKS_LENGTH = [0.045, 0.11, 0.04, 0.04, 0.11, 0.17] # links length
 
         # usefull flags
-        self.flag_is_position_init = False # become true when the position of each joint has been initialize in set_arm_position (or initialisation_position)
+        self.flag_is_position_init = False # become true when the position of each joint has been initialize in set_arm_position (or initialize_position)
+        self.flag_is_DH_param_init = False # become true when the DH parameters of each joint has been initialize in set_arm_position (or initialize_position)
 
         # arm values, this values need to be setted for any kinematics computation
         self.joint_position = np.zeros((self.joint_number)) # position of each joint
 
         # variables used for kinematics computation
+        self.DH_parameters = np.zeros((self.joint_number,4)) # DH param : d, theta,r, alpha
         self.T_list = np.zeros((self.joint_number, 4, 4)) # list of the transfert matrix of each joint
         self.T_total = np.eye(4) # the total transfert matrix of the arm
+
         self.J = np.zeros((3,4))       # Jacobian
         self.JJt = np.zeros((3,3))     # J * transpose(J)
         self.invJJt = np.zeros((3,3))  # inverse of JJt
@@ -101,7 +104,7 @@ class Arm(DXSerialAPI):
 
     # ------------- INITIALIZATION -------------
 
-    def initialisation_speed(self, init_speed=None):
+    def initialize_speed(self, init_speed=None):
         """
         This function initialize the rotation speed of all the motor
         :param init_speed: the speed you want (in rmp) (if None, the class default speed will be taken)
@@ -165,7 +168,7 @@ class Arm(DXSerialAPI):
 
         return 0
 
-    def initialisation_position(self, init_angles=None):
+    def initialize_position(self, init_angles=None):
         """
         This function initialize the angle of each JOINT (this is actualy tricky if you have multiple motors for the same joint, this if why you should
         REWRITE THE UGLY FUNCTION _write_single_joint_position WITH ALL THE IF STATEMENTS for your robot (sorry but this is the more robust and simple way to sovle this problem)
@@ -177,6 +180,29 @@ class Arm(DXSerialAPI):
         self.set_arm_position(angles)
 
         return 0
+
+    def initialize_DH_param(self, DH_param=None):
+        """
+        Initialisation of the DH parameters of the arm
+        :param DH_param: if you want to specify of value to this function, if None the default values will be used (modify the function to adapt it to your arm)
+        """
+        if DH_param is not None:
+            self.DH_parameters = np.copy(DH_param)
+        else:
+            if not (self.flag_is_position_init):
+                raise ValueError('The position has not been initialized, you need to initialize the position with set_arm_position or initialize_position before computing DH parameters')
+
+            self.DH_parameters = np.array([
+                [self.LINKS_LENGTH[0], self.joint_position[0] * 360 / (2 * np.pi), 0                   , 0      ],
+                [0                   , self.joint_position[1] * 360 / (2 * np.pi), self.LINKS_LENGTH[1], np.pi/2],
+                [self.LINKS_LENGTH[2], self.joint_position[2] * 360 / (2 * np.pi), 0                   , 0],
+                [0                   , self.joint_position[3] * 360 / (2 * np.pi), self.LINKS_LENGTH[3], np.pi/2],
+                [self.LINKS_LENGTH[4], self.joint_position[4] * 360 / (2 * np.pi), 0                   , 0      ],
+                [0                   , self.joint_position[5] * 360 / (2 * np.pi), self.LINKS_LENGTH[5], np.pi/2],
+            ])
+        self.flag_is_DH_param_init = True
+        return 0
+
 
     # -----------------------------------
 
@@ -202,7 +228,7 @@ class Arm(DXSerialAPI):
 
     # ------------- FORWARD KINEMATICS -------------
 
-    def calculate_T(self, d, r, alpha, theta):
+    def calculate_T(self, d, theta, r, alpha):
         """
         calculate the Denavit and Hartenberg matrix for a joint
         :param d: link offset
@@ -276,16 +302,12 @@ class Arm(DXSerialAPI):
         This function calculates the complete forward kinematics matrix of the arm
         :return: T the total kinematics matrix = T1 * T2 * ... * Tn
         """
-        if not(self.flag_is_position_init):
-            raise ValueError('The postion has not been initialized, you need to initialize the position with set_arm_position or initialisation_position before computing kinematics')
+        if not(self.flag_is_DH_param_init):
+            raise ValueError('The DH parameters have not been initialized, you need to initialize the DH parameters with initialze_DH_param before computing Denavit–Hartenberg matrices')
 
         for joint in range(self.joint_number):
-            theta = self.joint_position[joint] * 360 / (2*np.pi)
-            self.T_list[joint] = self.calculate_T(0, self.LINKS_LENGTH[joint], np.pi/2, theta)
+            self.T_list[joint] = self.calculate_T(self.DH_parameters[joint][0],self.DH_parameters[joint][1],self.DH_parameters[joint][2],self.DH_parameters[joint][3])
             self.T_total = self.T_total.dot(self.T_list[joint])
-
-
-        print(self.T_total)
 
     def calcutate_resultant_vector(self, P, T=None):
         """
@@ -314,21 +336,24 @@ class Arm(DXSerialAPI):
         origin_x = np.array([1, 0, 0, 1])
         origin_y = np.array([0, 1, 0, 1])
         origin_z = np.array([0, 0, 1, 1])
-        origin_ref = np.array([origin_x, origin, origin_y, origin, origin_z]).T
+        origin_ref = np.array([origin_x, origin, origin_y, origin, origin_z]).T /100
 
-        #ax.plot3D(origin_ref[0], origin_ref[1], origin_ref[2])
+        ax.plot3D(origin_ref[0], origin_ref[1], origin_ref[2])
 
         T = np.eye(4)
-        arm_origins = np.zeros((self.joint_number,4))
+        arm_origins = np.zeros((self.joint_number, 4))
         arm_origins[:,3] = np.ones((self.joint_number))
-        print(arm_origins)
 
-        for joint in range(self.joint_number):
+        for joint in range(1,self.joint_number):
 
             T = self.T_list[joint] # transformation matrix joint -> joint+1
+            print(arm_origins[joint-1])
+            print(T)
+            arm_origins[joint] = T.dot(arm_origins[joint-1])
 
 
-
+        arm_origins = arm_origins.T
+        ax.plot3D(arm_origins[0], arm_origins[1], arm_origins[2])
 
 
 

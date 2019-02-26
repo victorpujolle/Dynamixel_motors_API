@@ -31,12 +31,15 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------------------------------
 
     # --------------------------------------- MOUVEMENTS TESTS ----------------------------------------
-    ArmAPI.initialisation_speed()
+    ArmAPI.initialize_speed()
     ArmAPI.read_full_state()
 
-    ArmAPI.initialisation_position()
+    ArmAPI.initialize_position()
+    ArmAPI.initialize_DH_param()
 
     ArmAPI.calculate_forward_kinematics_matrix()
+
+    print(ArmAPI.joint_position)
 
     ArmAPI.display_3d_robot()
     # -------------------------------------------------------------------------------------------------
