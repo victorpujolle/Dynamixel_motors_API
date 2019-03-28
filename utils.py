@@ -26,3 +26,9 @@ def pseudo_conversion(n, length_res=2):
             res.append(0)
 
     return res
+
+def rad2deg(q):
+    return q * 360 / (2*np.pi)
+
+def deg2rad(q):
+    return q / 360 * (2*np.pi)

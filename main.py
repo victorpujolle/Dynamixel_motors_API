@@ -1,6 +1,11 @@
+import sys
+import os
+
 from DXSerialAPI import *
 from Arm import *
-import time
+
+from PyQt5 import QtWidgets,QtCore
+from interface import Application
 
 
 if __name__ == '__main__':
@@ -10,7 +15,7 @@ if __name__ == '__main__':
     # open COM3, baudrate 1000000
     PORT_NAME = 'COM3'
     BAUDRATE = 1000000
-    TIME_OUT = 0.0001
+    TIME_OUT = 0.05
     #motorsAPI = DXSerialAPI(PORT_NAME, BAUDRATE, TIMEOUT=TIME_OUT)
     # -------------------------------------------------------------------------------------------------
 
@@ -31,17 +36,22 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------------------------------
 
     # --------------------------------------- MOUVEMENTS TESTS ----------------------------------------
-    ArmAPI.initialize_speed()
-    ArmAPI.read_full_state()
+    pi = np.pi
+    pi2 = pi/2
 
-    ArmAPI.initialize_position()
-    ArmAPI.initialize_DH_param()
+    q = [pi2,pi2,pi2,pi2,pi2,pi2]
 
-    ArmAPI.calculate_forward_kinematics_matrix()
+    Gen = Generator(ArmAPI.LINKS_LENGTH,-90,90)
 
-    print(ArmAPI.joint_position)
 
-    ArmAPI.display_3d_robot()
+    Gen.compute_FK(q)
+
+    # UI
+    QApp = QtWidgets.QApplication(sys.argv)
+    app = Application()
+    app.show()
+    sys.exit(QApp.exec_())
+
     # -------------------------------------------------------------------------------------------------
 
 

@@ -119,7 +119,7 @@ class DXSerialAPI(serial.Serial):
 
 
         # error test
-        if error != b'\x00' and error != b'':
+        if id != b'' and error != b'\x00' and error != b'':
             warnings.warn('The motor {} has responded the error number {}'.format(id,error))
 
         return id, length, error, parameters, checksum
