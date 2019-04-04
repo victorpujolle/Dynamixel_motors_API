@@ -230,7 +230,7 @@ class Application(QtWidgets.QWidget):
             self.clear_figure() # clear figure
             self.draw_arm([x, y, z]) # draw the arm
             self.draw_ref(list_ref)
-
+            self.FigureCanvas.draw()
 
 
 
@@ -326,7 +326,6 @@ class Application(QtWidgets.QWidget):
 
         self.axis.plot(x, y, z, color='orange', linewidth = 3.0)
         self.axis.scatter(x, y, z, linewidth=3.0)
-        self.FigureCanvas.draw()
 
         return 0
 
@@ -336,12 +335,14 @@ class Application(QtWidgets.QWidget):
         :param ref: list of reference frame [0,x,y,z], vectors have a scale of 1
         """
         # scaling down the ref
-        scale = self.axis_xlim3d[1] - self.axis_xlim3d[0] * 0.1
+        scale = (self.axis_xlim3d[1] - self.axis_xlim3d[0]) * 0.1
         #list_ref *= scale
         print(list_ref[0])
         for i in range(len(list_ref)):
-            pass
-            #ref = np.array([list_ref[i][0], list_ref[i][1], list_ref[i][0], list_ref[i][2], list_ref[i][0], list_ref[i][3]])
-            #print('ref {} :\n'.format(i), ref)
 
+            ref = list_ref[i].T
+            ref = np.array([ref[0], ref[0] + ref[1]*scale, ref[0], ref[0] + ref[2]*scale, ref[0], ref[0] + ref[3]*scale]).T[0:3]
+            print('ref {} :\n'.format(i), ref)
+            self.axis.plot(ref[0], ref[1], ref[2], color='grey', linewidth = 2.0)
+            self.axis.scatter(ref[0], ref[1], ref[2], color='grey', linewidth = 2.0)
 

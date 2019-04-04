@@ -308,8 +308,6 @@ class Generator():
         # base ref to draw
         ref0 = np.array([origin, x_base, y_base, z_base]).T
         ref1 = self.T0.dot(ref0)
-        print(ref0)
-        print(ref1)
         ref2 = self.T1.dot(ref1)
         ref3 = self.T2.dot(ref2)
         ref4 = self.T3.dot(ref3)
