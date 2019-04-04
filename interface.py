@@ -234,7 +234,7 @@ class Application(QtWidgets.QWidget):
 
         # calculate the fk
         R,t = self.Arm.kinematic.compute_FK([float(th[0]),float(th[1]),float(th[2]),float(th[3]),float(th[4]),float(th[5])])
-        x,y,z = self.Arm.kinematic.init_pose([float(th[0]),float(th[1]),float(th[2]),float(th[3]),float(th[4]),float(th[5])])
+        x,y,z = self.Arm.kinematic.compute_pose([float(th[0]), float(th[1]), float(th[2]), float(th[3]), float(th[4]), float(th[5])])
         # update the arm drowing
         self.drow_arm(p[:,0], p[:,1],p[:,2])
         # update the arm coordination

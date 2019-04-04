@@ -129,7 +129,7 @@ class Application(QtWidgets.QWidget):
         self.deg5textbox = QtWidgets.QLineEdit(self)
 
         # Create the button objects
-        self.drowbutton = QtWidgets.QPushButton('drow', self)
+        self.drowbutton = QtWidgets.QPushButton('draw', self)
 
         # Resize text box
         self.xtextbox.resize(100, 20)
@@ -223,9 +223,15 @@ class Application(QtWidgets.QWidget):
         else:
             # valid input
             R,t = self.arm.kinematic.compute_FK(q) # compute the total kinematics
-            x,y,z = self.arm.kinematic.init_pose(q) # compute all partial kinematics
+            x,y,z = self.arm.kinematic.compute_pose(q) # compute all partial kinematics
             self.set_output([t[0], t[1], t[2]]) # set the output
+            list_ref = self.arm.kinematic.compute_ref(q)  # compute all the local ref
+
+            self.clear_figure() # clear figure
             self.draw_arm([x, y, z]) # draw the arm
+            self.draw_ref(list_ref)
+
+
 
 
         return 0
@@ -269,7 +275,7 @@ class Application(QtWidgets.QWidget):
 
         return th0, th1, th2, th3, th4, th5
 
-    def check_input(self,q):
+    def check_input(self, q):
         """
         this method check if the input are allowed
         :return: true or false depend of the input
@@ -284,7 +290,7 @@ class Application(QtWidgets.QWidget):
 
         return True
 
-    def set_output(self,X):
+    def set_output(self, X):
         """
         method to set the output text box
         :param X: list [x,y,z]
@@ -311,17 +317,31 @@ class Application(QtWidgets.QWidget):
 
         return 0
 
-    def draw_arm(self,X):
+    def draw_arm(self, X):
         """
         draw the arm in the figure
         :param X: [x,y,z] where x in the list of x coord of each joint of the arm, and so on.
         """
         [x, y, z] = X
-        self.clear_figure()
+
         self.axis.plot(x, y, z, color='orange', linewidth = 3.0)
         self.axis.scatter(x, y, z, linewidth=3.0)
         self.FigureCanvas.draw()
 
         return 0
+
+    def draw_ref(self, list_ref):
+        """
+        draw on the figure a local reference frame
+        :param ref: list of reference frame [0,x,y,z], vectors have a scale of 1
+        """
+        # scaling down the ref
+        scale = self.axis_xlim3d[1] - self.axis_xlim3d[0] * 0.1
+        #list_ref *= scale
+        print(list_ref[0])
+        for i in range(len(list_ref)):
+            pass
+            #ref = np.array([list_ref[i][0], list_ref[i][1], list_ref[i][0], list_ref[i][2], list_ref[i][0], list_ref[i][3]])
+            #print('ref {} :\n'.format(i), ref)
 
 

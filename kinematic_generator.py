@@ -144,6 +144,32 @@ class Generator():
         # wrest
         return np.dot(np.dot(self.compute_T_el(q0, q1, q2, q3), self.compute_T4(q4)),self.compute_T5(q5))
 
+    # toolkit for homogenous coordinates
+    def homogenous2space(self,v):
+        """
+        project the homogenous vector v to the projective space in 3D
+        :param v: homogenous vector
+        :return: projected vector
+        """
+        return np.array([v[0]/v[3], v[1]/v[3], v[2]/v[3]])
+
+    def space2homogenous(self,v):
+        """
+        project of 3D point into the homogenous considering it is not at the infinity
+        :param v: 3D vector
+        :return: projected homogenous vector
+        """
+        return np.array([v[0], v[1], v[2], 1])
+
+    def homo_add(self,v,w):
+        """
+        add two homogenous vectors
+        :param v: vector
+        :param w: vector
+        :return: v + w
+        """
+        return self.space2homogenous(self.homogenous2space(v) + self.homogenous2space(w))
+
     # transfert matrices computation with DH parameters
     def calculate_DH_param(self, q):
         """
@@ -236,7 +262,6 @@ class Generator():
         :param q: the angle of each joint
         :return: the final rotation matrix and translation
         """
-        print('compute fk')
         T = self.compute_T_wr(q[0],q[1],q[2],q[3],q[4],q[5])
         R = T[0:3,0:3]
         t = T[0:3,3]
@@ -244,7 +269,7 @@ class Generator():
         return R, t
 
     # pose computation for drawing
-    def init_pose(self, q):
+    def compute_pose(self, q):
         """
         Compute the position of each joints
         :param q: the angle of each joint
@@ -262,12 +287,38 @@ class Generator():
         joint_pos5 = self.T5.dot(joint_pos4)
 
 
-        x = [0, joint_pos0[0], joint_pos1[0], joint_pos2[0], joint_pos3[0], joint_pos4[0], joint_pos5[0]]
-        y = [0, joint_pos0[1], joint_pos1[1], joint_pos2[1], joint_pos3[1], joint_pos4[1], joint_pos5[1]]
-        z = [0, joint_pos0[2], joint_pos1[2], joint_pos2[2], joint_pos3[2], joint_pos4[2], joint_pos5[2]]
+        x = [0, joint_pos0[0]]#, joint_pos1[0], joint_pos2[0], joint_pos3[0], joint_pos4[0], joint_pos5[0]]
+        y = [0, joint_pos0[1]]#, joint_pos1[1], joint_pos2[1], joint_pos3[1], joint_pos4[1], joint_pos5[1]]
+        z = [0, joint_pos0[2]]#, joint_pos1[2], joint_pos2[2], joint_pos3[2], joint_pos4[2], joint_pos5[2]]
 
         return x,y,z
 
+    def compute_ref(self,q):
+        """
+        Compute all the local referencial to help the visualisation of the arm
+        :param q: the angle of each joint
+        :return: the list with all the referencials
+        """
+        # base vectors
+        origin = np.array([0, 0, 0 ,1])
+        x_base = np.array([1, 0, 0, 1])
+        y_base = np.array([0, 1, 0, 1])
+        z_base = np.array([0, 0, 1, 1])
+
+        # base ref to draw
+        ref0 = np.array([origin, x_base, y_base, z_base]).T
+        ref1 = self.T0.dot(ref0)
+        print(ref0)
+        print(ref1)
+        ref2 = self.T1.dot(ref1)
+        ref3 = self.T2.dot(ref2)
+        ref4 = self.T3.dot(ref3)
+        ref5 = self.T4.dot(ref4)
+        ref6 = self.T5.dot(ref5)
+
+        list_ref = np.array([ref0, ref1])#, ref2, ref3, ref4, ref5, ref6])
+
+        return list_ref
 
 
 

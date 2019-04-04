@@ -5,7 +5,7 @@ from DXSerialAPI import *
 from Arm import *
 
 from PyQt5 import QtWidgets,QtCore
-from control_interface_1 import Application
+from control_interface import Application
 
 
 if __name__ == '__main__':
@@ -28,21 +28,7 @@ if __name__ == '__main__':
     ArmAPI = Arm(PORT_NAME, BAUDRATE, TIME_OUT=TIME_OUT, joint_number=joint_number, motor_number=motor_number, motors_id=motors_id, joints2motors=joints2motors)
     # -------------------------------------------------------------------------------------------------
 
-    # ----------------------------------------- MOTOR TESTING -----------------------------------------
-    # motors existence
-    all_motors_ok, details, details_msg = ArmAPI.test_motors()
-    print('--- Are all the motors connected ? :', all_motors_ok, '\n--- Motors details :', details)
-    #print(details_msg)
-    # -------------------------------------------------------------------------------------------------
-
     # --------------------------------------- MOUVEMENTS TESTS ----------------------------------------
-    pi = np.pi
-    pi2 = pi/2
-
-    q = [pi2,pi2,pi2,pi2,pi2,pi2]
-
-    Gen = Generator(ArmAPI.LINKS_LENGTH,-90,90)
-
 
     # UI
     QApp = QtWidgets.QApplication(sys.argv)
