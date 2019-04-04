@@ -5,7 +5,7 @@ from DXSerialAPI import *
 from Arm import *
 
 from PyQt5 import QtWidgets,QtCore
-from interface import Application
+from control_interface_1 import Application
 
 
 if __name__ == '__main__':
@@ -44,11 +44,9 @@ if __name__ == '__main__':
     Gen = Generator(ArmAPI.LINKS_LENGTH,-90,90)
 
 
-    Gen.compute_FK(q)
-
     # UI
     QApp = QtWidgets.QApplication(sys.argv)
-    app = Application()
+    app = Application(ArmAPI)
     app.show()
     sys.exit(QApp.exec_())
 

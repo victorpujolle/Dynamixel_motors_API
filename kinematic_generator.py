@@ -133,6 +133,7 @@ class Generator():
         self.T5[2, 3] = self.L[5] * st
 
         return self.T5
+
     def compute_T_sh(self, q0, q1):
         # shoulder
         return np.dot(self.compute_T0(q0), self.compute_T1(q1))
@@ -235,17 +236,37 @@ class Generator():
         :param q: the angle of each joint
         :return: the final rotation matrix and translation
         """
+        print('compute fk')
         T = self.compute_T_wr(q[0],q[1],q[2],q[3],q[4],q[5])
         R = T[0:3,0:3]
         t = T[0:3,3]
-        print('T : \n',T)
-        print('R : \n',R)
-        print('t : \n',t)
+
+        return R, t
 
     # pose computation for drawing
-    def ini_pose(self, q):
+    def init_pose(self, q):
+        """
+        Compute the position of each joints
+        :param q: the angle of each joint
+        :return: the list of x, y, z coord of each joint
+        """
+        joint_pos_init = np.array([0,0,0,1])
+        self.compute_T_wr(q[0], q[1], q[2], q[3], q[4], q[5])
 
 
+        joint_pos0 = self.T0.dot(joint_pos_init)
+        joint_pos1 = self.T1.dot(joint_pos0)
+        joint_pos2 = self.T2.dot(joint_pos1)
+        joint_pos3 = self.T3.dot(joint_pos2)
+        joint_pos4 = self.T4.dot(joint_pos3)
+        joint_pos5 = self.T5.dot(joint_pos4)
+
+
+        x = [0, joint_pos0[0], joint_pos1[0], joint_pos2[0], joint_pos3[0], joint_pos4[0], joint_pos5[0]]
+        y = [0, joint_pos0[1], joint_pos1[1], joint_pos2[1], joint_pos3[1], joint_pos4[1], joint_pos5[1]]
+        z = [0, joint_pos0[2], joint_pos1[2], joint_pos2[2], joint_pos3[2], joint_pos4[2], joint_pos5[2]]
+
+        return x,y,z
 
 
 

@@ -35,6 +35,8 @@ class Arm(DXSerialAPI):
         self.DX_SPEED = 100 # speed of the motors
         self.LINKS_LENGTH = [0.045, 0.11, 0.04, 0.04, 0.11, 0.13] # links length
         self.ANGLE_OFFSET = np.array([150, 132, 150, 150, 150, 150]) # angle offset used to calculate DH parameters (because the angle origin of the motors is not the same that the angle origin of the DH param)
+        self.ANGLE_LIMIT_INF = [-90, -90, -90, -90, -90, -90]
+        self.ANGLE_LIMIT_SUP = [90, 90, 90, 90, 90, 90]
 
         # usefull flags
         self.flag_is_position_init = False # become true when the position of each joint has been initialize in set_arm_position (or initialize_position)
@@ -44,6 +46,7 @@ class Arm(DXSerialAPI):
         self.joint_position = np.zeros((self.joint_number)) # position of each joint
 
         # variables used for kinematics computation
+        self.kinematic = Generator(self.LINKS_LENGTH, self.ANGLE_LIMIT_INF, self.ANGLE_LIMIT_SUP)
         self.DH_parameters = np.zeros((self.joint_number,4)) # DH param : d, theta,r, alpha
         self.T_list = np.zeros((self.joint_number, 4, 4)) # list of the transfert matrix of each joint
         self.T_total = np.eye(4) # the total transfert matrix of the arm
@@ -287,6 +290,8 @@ class Arm(DXSerialAPI):
 
     # ------------------------------------
 
+
+    # deprecated TODO : suppress this
     # ------------- FORWARD KINEMATICS -------------
 
     def calculate_T(self, d, theta, r, alpha):

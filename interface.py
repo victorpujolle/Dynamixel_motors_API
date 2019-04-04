@@ -16,14 +16,16 @@ import socket
 import math
 
 class Application(QtWidgets.QWidget):
-    def __init__(self):
+    def __init__(self, arm):
         super(Application,self).__init__()
+        # link the arm
+        self.Arm = arm
         #Create kinematics Object and Get initial location of each motor
         self.initKinematics()
         # Initialize UI of qt
         self.initUI()
         # Initialize Figure&Menu
-        #self.initFigure()
+        self.initFigure()
         self.initMenu()
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.update)
@@ -36,7 +38,6 @@ class Application(QtWidgets.QWidget):
         #self._L = self.arm.LINKS_LENGTH
         self.q_min= 90
         self.q_max= 90
-        #self.kinematics = fk_module.Generater(L=self._L, q_max=self.q_max, q_min=self.q_min, eef_only=False)
         #self._initPos, self._initNOA = self.kinematics.fk([np.deg2rad(0), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0), np.deg2rad(0)]) #(xyz)*5 + n_o_a
 
     ##initialize the UI
@@ -73,10 +74,11 @@ class Application(QtWidgets.QWidget):
         self.axis.set_ylim3d(-0.2,0.7)
         self.axis.set_zlim3d(-0.7,0.2)
 
-        #Drow every link of the arm
-        self.drow_arm(self._initPos[:,0], self._initPos[:,1],self._initPos[:,2])
+        # Drow every link of the arm
+        #x, y, z = self.Arm.kinematic.init_pose()
+        #self.drow_arm(x, y, z)
         #Drow the (shoulder-elbow-wrist-eeef) positions and coordinations
-        self.drow_coordination(self._initPos,self._initNOA)
+        #self.drow_coordination(self._initPos,self._initNOA)
 
     def initMenu(self):
         #Create the label objects
@@ -128,6 +130,7 @@ class Application(QtWidgets.QWidget):
         self.deg3textbox.resize(th_size[0],th_size[1])
         self.deg4textbox.resize(th_size[0],th_size[1])
         self.deg5textbox.resize(th_size[0],th_size[1])
+
         #set the size of each button object
         self.calcbutton.resize(80,30)
         self.drowbutton.resize(80,30)
@@ -185,10 +188,11 @@ class Application(QtWidgets.QWidget):
         
         self.drowbutton.move( pos[2],pos[4]+180)
         # connect the button to the click_action
-        self.calcbutton.clicked.connect(self.on_calcclick)
+        #self.calcbutton.clicked.connect(self.on_calcclick)
         self.drowbutton.clicked.connect(self.on_drowclick)
 
     def drow_arm(self,x,y,z):
+
         self.axis.plot(x, y, z, color='orange', linewidth = 3.0)
         self.axis.scatter(x, y, z, linewidth = 3.0)
         self.FigureCanvas.draw()
@@ -221,41 +225,37 @@ class Application(QtWidgets.QWidget):
         self.axis.plot(z[:,0],z[:,1],z[:,2],color="Green")
         print('z location',z[:,0],z[:,1],z[:,2])
 
-    def on_calcclick(self):
-        x,y,z,nx,ny,nz,ox,oy,oz,ax,ay,az,alpha = self.get_input_val()
-        #check if the input values are in-range of the arm workspace
-        if (self.check(x,y,z,nx,ny,nz,ox,oy,oz,ax,ay,az)):
-            #calculate the ik
-            self.closed_form(x,y,z,nx,ny,nz,ox,oy,oz,ax,ay,az,alpha)
-            # self.send(x,y,z,nx,ny,nz,ox,oy,oz,ax,ay,az)
-        else:
-            #ERROR Message
-            QtWidgets.QMessageBox.question(self, 'ERROR', "You should input inrange values ", QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
 
     def on_drowclick(self):
         #get the parameters of the inputs
-        th = self.get_output_val()
+        th = self.get_input_joints()
         th = self.saturation_th(th)
         th_deg = self.rad2deg(th)
 
-        self.deg0textbox.setText(str(self.rounding(th_deg[0])))
-        self.deg1textbox.setText(str(self.rounding(th_deg[1])))
-        self.deg2textbox.setText(str(self.rounding(th_deg[2])))
-        self.deg3textbox.setText(str(self.rounding(th_deg[3])))
-        self.deg4textbox.setText(str(self.rounding(th_deg[4])))
-        self.deg5textbox.setText(str(self.rounding(th_deg[5])))
         # calculate the fk
-        p,noa = self.kinematics.fk([float(th[0]),float(th[1]),float(th[2]),float(th[3]),float(th[4]),float(th[5])])
+        R,t = self.Arm.kinematic.compute_FK([float(th[0]),float(th[1]),float(th[2]),float(th[3]),float(th[4]),float(th[5])])
+        x,y,z = self.Arm.kinematic.init_pose([float(th[0]),float(th[1]),float(th[2]),float(th[3]),float(th[4]),float(th[5])])
         # update the arm drowing
         self.drow_arm(p[:,0], p[:,1],p[:,2])
         # update the arm coordination
-        self.drow_coordination(p,noa)
+        #self.drow_coordination(p,noa)
 
         #output the locations of the eef
-        self.pxtextbox.setText(str(self.rounding(p[-1,-3])))
-        self.pytextbox.setText(str(self.rounding(p[-1,-2])))
-        self.pztextbox.setText(str(self.rounding(p[-1,-1])))
+        self.xtextbox.setText(str(self.rounding(t[0])))
+        self.ytextbox.setText(str(self.rounding(t[1])))
+        self.ztextbox.setText(str(self.rounding(t[2])))
         # print(p[-1,:])
+
+    def get_input_joints(self):
+        th0 = self.self.deg0label.text()
+        th1 = self.self.deg1label.text()
+        th2 = self.self.deg2label.text()
+        th3 = self.self.deg3label.text()
+        th4 = self.self.deg4label.text()
+        th5 = self.self.deg5label.text()
+
+        return th0,th1,th2,th3,th4,th5
+
 
     def get_input_val(self):
         x  = self.xtextbox.text()
@@ -282,16 +282,6 @@ class Application(QtWidgets.QWidget):
         th5 = self.rad5textbox.text()
         return th0,th1,th2,th3,th4,th5
 
-    def check(self,x,y,z,nx,ny,nz,ox,oy,oz,ax,ay,az):
-        L0_L1 = self._L[0] + self._L[1]
-        L2_L3 = self._L[2] + self._L[3]
-
-        _x,_y,_z = float(x),float(y),float(x)
-        if (((_x+L0_L1)**2+_y**2+_z**2) < (L2_L3)**2 and float(y)>0.15):
-            return True
-        else:
-            return False
-
     def saturation_th(self,q):
         ## q should be radians
         q_min = np.deg2rad(self.q_min)
@@ -313,54 +303,7 @@ class Application(QtWidgets.QWidget):
     def rounding(self,k):
         return "{:.4f}".format(k)
 
-    #def closed_form(self,x,y,z,nx,ny,nz,ox,oy,oz,ax,ay,az,alpha):
-    #    #Create the instance of closed_form Module
-    #    print('calculatiing ik...')
-    #    cl_ik = Closed_form_ik.inv(L=self._L, q_max=[180,10,60,90,90,90], q_min=[-30,-90,-90,0,-90,0], eef_only=False)
-    #
-    #    #calculate the ik
-    #    x_plot,y_plot,z_plot,q0,q1,q2,q3,q4,q5 = cl_ik.solve(x,y,z,nx,ny,nz,ox,oy,oz,ax,ay,az,alpha)
-    #    p,noa = self.kinematics.fk([float(q0),float(q1),float(q2),float(q3),float(q4),float(q5)])
-    #
-    #    # Drow every link of the arm
-    #    self.drow_arm(x_plot,y_plot,z_plot)  ##desired locarion & orientation
-    #    self.drow_arm(p[:,0], p[:,1],p[:,2]) ##result of ik
-    #
-    #    #Drow the (shoulder-elbow-wrist-eeef) positions and coordinations
-    #    self.drow_coordination(p,noa)
-    #
-    #    #update UI
-    #    self.set_output_text(q0,q1,q2,q3,q4,q5,p[-1,-3],p[-1,-2],p[-1,-1])
 
-    ##For TCP/IP communication
-    #def send(self,x,y,z,nx,ny,nz,ox,oy,oz,ax,ay,az):
-    #    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    #        # set the IP Address & Port number
-    #        s.connect(('127.0.0.1', 50007))
-    #        data = x + ',' + y + ',' + z + ',' + nx + ',' + ny + ',' + nz + ',' + ox + ',' + oy + ',' + oz + ',' + ax + ',' + ay + ',' + az
-    #        s.sendall(data.encode())
-    #
-    #        #Plot the Target position
-    #        self.axis.scatter(float(x), float(y), float(z))
-    #        # The buffer size of the network is 1024: Get the strings from the server
-    #        r_data = str(s.recv(1024).decode())
-    #        r_data = r_data.split(',')
-    #        # print(r_data)
-    #        #Output the values on the textbox
-    #        self.rad0textbox.setText(str(self.rounding(float(r_data[0]))))
-    #        self.rad1textbox.setText(str(self.rounding(float(r_data[1]))))
-    #        self.rad2textbox.setText(str(self.rounding(float(r_data[2]))))
-    #        self.rad3textbox.setText(str(self.rounding(float(r_data[3]))))
-    #        self.rad4textbox.setText(str(self.rounding(float(r_data[4]))))
-    #        self.rad5textbox.setText(str(self.rounding(float(r_data[5]))))
-    #        th0,th1,th2,th3,th4,th5 = self.get_output_val()
-    #        self.deg0textbox.setText(str(self.rounding(np.rad2deg(float(th0)))))
-    #        self.deg1textbox.setText(str(self.rounding(np.rad2deg(float(th1)))))
-    #        self.deg2textbox.setText(str(self.rounding(np.rad2deg(float(th2)))))
-    #        self.deg3textbox.setText(str(self.rounding(np.rad2deg(float(th3)))))
-    #        self.deg4textbox.setText(str(self.rounding(np.rad2deg(float(th4)))))
-    #        self.deg5textbox.setText(str(self.rounding(np.rad2deg(float(th5)))))
-    #        # print('got result from server')
 
     def rad2deg(self,th):
         th_deg = np.empty(6)
@@ -372,53 +315,22 @@ class Application(QtWidgets.QWidget):
         return th_deg
 
     def init_input_text(self):
-        self.xtextbox.setText('')
-        self.ytextbox.setText('')
-        self.ztextbox.setText('')
-        self.nxtextbox.setText('')
-        self.nytextbox.setText('')
-        self.nztextbox.setText('')
-        self.oxtextbox.setText('')
-        self.oytextbox.setText('')
-        self.oztextbox.setText('')
-        self.axtextbox.setText('')
-        self.aytextbox.setText('')
-        self.aztextbox.setText('')
-        self.alphatextbox.setText('')
-
-    def init_output_text(self):
-        self.rad0textbox.setText('')
-        self.rad1textbox.setText('')
-        self.rad2textbox.setText('')
-        self.rad3textbox.setText('')
-        self.rad4textbox.setText('')
-        self.rad5textbox.setText('')
         self.deg0textbox.setText('')
         self.deg1textbox.setText('')
         self.deg2textbox.setText('')
         self.deg3textbox.setText('')
         self.deg4textbox.setText('')
         self.deg5textbox.setText('')
-        self.pxtextbox.setText('')
-        self.pytextbox.setText('')
-        self.pztextbox.setText('')
 
-    def set_output_text(self,r0,r1,r2,r3,r4,r5,px,py,pz):
-        self.rad0textbox.setText(str(self.rounding(float(r0))))
-        self.rad1textbox.setText(str(self.rounding(float(r1))))
-        self.rad2textbox.setText(str(self.rounding(float(r2))))
-        self.rad3textbox.setText(str(self.rounding(float(r3))))
-        self.rad4textbox.setText(str(self.rounding(float(r4))))
-        self.rad5textbox.setText(str(self.rounding(float(r5))))
-        self.deg0textbox.setText(str(self.rounding(float(np.rad2deg(r0)))))
-        self.deg1textbox.setText(str(self.rounding(float(np.rad2deg(r1)))))
-        self.deg2textbox.setText(str(self.rounding(float(np.rad2deg(r2)))))
-        self.deg3textbox.setText(str(self.rounding(float(np.rad2deg(r3)))))
-        self.deg4textbox.setText(str(self.rounding(float(np.rad2deg(r4)))))
-        self.deg5textbox.setText(str(self.rounding(float(np.rad2deg(r5)))))
-        self.pxtextbox.setText(str(self.rounding(px)))
-        self.pytextbox.setText(str(self.rounding(py)))
-        self.pztextbox.setText(str(self.rounding(pz)))
+    def init_output_text(self):
+        self.xtextbox.setText('')
+        self.ytextbox.setText('')
+        self.ztextbox.setText('')
+
+    def set_output_text(self,x,y,z):
+        self.xtextbox.setText(self.rounding(x))
+        self.ytextbox.setText(self.rounding(y))
+        self.ztextbox.setText(self.rounding(z))
 
     # assign the action to KeyPressEvent
     def keyPressEvent(self, e):
