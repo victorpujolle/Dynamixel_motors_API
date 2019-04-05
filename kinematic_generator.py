@@ -58,7 +58,7 @@ class Generator():
 
     def compute_T0(self):
         # return self.RotY(math.pi/2) @ self.Trans(0,0,-self.L[0])
-        self.T0 = self.RotY(np.pi / 2).dot(self.Trans(0, 0, -(self.L[0] + self.L[1])))
+        self.T0 = self.RotY(np.pi / 2).dot(self.Trans(0, 0, self.L[0]))
         return self.T0
 
     def compute_T1(self, q1):
@@ -250,17 +250,30 @@ class Generator():
         """
         joint_pos_init = np.array([0,0,0,1])
         #self.compute_T_wr(q[0], q[1], q[2], q[3], q[4], q[5])
-        self.compute_T0_eef(q[0], q[1], q[2], q[3], q[4], q[5])
+        self.compute_T0_eef(q[0], q[1], q[2], q[3], q[4], q[5]) # will compute all the transformation matrices
 
         origin = self.Trans(0, 0, 0)[0:3, -1]
         T0_sh  = self.compute_T0_sh(q[0], q[1])[0:3, -1]
-        T0_el  = self.compute_T0_el(q[0], q[1], q[2], q[3], )[0:3, -1]
+        T0_el  = self.compute_T0_el(q[0], q[1], q[2], q[3])[0:3, -1]
         T0_wr  = self.compute_T0_wr(q[0], q[1], q[2], q[3], q[4], q[5])[0:3, -1]
         T0_eef = self.compute_T0_eef(q[0], q[1], q[2], q[3], q[4], q[5])[0:3, -1]
+
+        p0 = self.T0.dot(origin)
+        p1 = self.T1.dot(p0)
+        p2 = self.T2.dot(p1)
+        p3 = self.T3.dot(p2)
+        p4 = self.T4.dot(p3)
+        p5 = self.T5.dot(p4)
+
+
 
         x = [0, T0_sh[0], T0_el[0], T0_wr[0], T0_eef[0]]
         y = [0, T0_sh[1], T0_el[1], T0_wr[1], T0_eef[1]]
         z = [0, T0_sh[2], T0_el[2], T0_wr[2], T0_eef[2]]
+
+        #x = [0, p0[0], p1[0], p2[0], p3[0], p4[0], p5[0]]
+        #y = [0, p0[1], p1[1], p2[1], p3[1], p4[1], p5[1]]
+        #z = [0, p0[2], p1[2], p2[2], p3[2], p4[2], p5[2]]
 
         return x,y,z
 
