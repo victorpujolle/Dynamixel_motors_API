@@ -35,114 +35,87 @@ class Generator():
     def RotX(self, alpha):
         return np.array([
             [ 1 ,       0        ,        0        , 0 ],
-            [ 0 , math.cos(alpha), -math.sin(alpha), 0 ],
-            [ 0 , math.sin(alpha),  math.cos(alpha), 0 ],
+            [ 0 , np.cos(alpha), -np.sin(alpha), 0 ],
+            [ 0 , np.sin(alpha),  np.cos(alpha), 0 ],
             [ 0 ,       0        ,        0        , 1 ]
         ])
     def RotY(self, beta):
         return np.array([
-            [  math.cos(beta), 0 , math.sin(beta), 0 ],
+            [  np.cos(beta), 0 , np.sin(beta), 0 ],
             [       0        , 1 ,      0        , 0 ],
-            [ -math.sin(beta), 0 , math.cos(beta), 0 ],
+            [ -np.sin(beta), 0 , np.cos(beta), 0 ],
             [       0        , 0 ,      0        , 1 ]
         ])
     def RotZ(self, gamma):
         return np.array([
-            [ math.cos(gamma), -math.sin(gamma), 0 , 0 ],
-            [ math.sin(gamma),  math.cos(gamma), 0 , 0 ],
+            [ np.cos(gamma), -np.sin(gamma), 0 , 0 ],
+            [ np.sin(gamma),  np.cos(gamma), 0 , 0 ],
             [       0        ,        0        , 1 , 0 ],
             [       0        ,        0        , 0 , 1 ]
         ])
 
-    # transfert matrices
-    def compute_T0(self,q0):
-        ct = np.cos(q0)
-        st = np.sin(q0)
+    '''Transformation matrix of each joint & certain part'''
 
-        self.T0[0, 0] =  ct
-        self.T0[0, 1] = -st
-        self.T0[1, 0] =  st
-        self.T0[1, 1] =  ct
-        self.T0[0, 3] = 0
-        self.T0[1, 3] = 0
-        self.T0[2, 3] = self.L[0]
-
+    def compute_T0(self):
+        # return self.RotY(math.pi/2) @ self.Trans(0,0,-self.L[0])
+        self.T0 = self.RotY(np.pi / 2).dot(self.Trans(0, 0, -(self.L[0] + self.L[1])))
         return self.T0
-    def compute_T1(self,q1):
-        ct = np.cos(q1)
-        st = np.sin(q1)
 
-        self.T1[0, 0] = ct
-        self.T1[0, 2] = st
-        self.T1[2, 0] =-st
-        self.T1[2, 2] = ct
-        self.T1[0, 3] = self.L[1] * ct
-        self.T1[1, 3] = 0
-        self.T1[2, 3] = self.L[1]* st
-
+    def compute_T1(self, q1):
+        # return self.RotZ(q1) @ self.Trans(0,0,-self.L[1]) @ self.RotX(math.pi/2)
+        self.T1 = self.RotZ(q1).dot(self.Trans(0, 0, 0).dot(self.RotX(np.pi / 2)))
         return self.T1
-    def compute_T2(self,q2):
-        ct = np.cos(q2)
-        st = np.sin(q2)
 
-        self.T2[1, 1] =  ct
-        self.T2[1, 2] = -st
-        self.T2[2, 1] =  st
-        self.T2[2, 2] =  ct
-        self.T2[0, 3] = self.L[2]
-        self.T2[1, 3] = 0
-        self.T2[2, 3] = 0
-
+    def compute_T2(self, q2):
+        self.T2 = self.RotZ(q2 + np.pi / 2).dot(self.Trans(0, 0, 0).dot(self.RotX(np.pi / 2)))
         return self.T2
-    def compute_T3(self,q3):
-        ct = np.cos(q3)
-        st = np.sin(q3)
 
-        self.T3[0, 0] =  ct
-        self.T3[0, 2] =  st
-        self.T3[2, 0] = -st
-        self.T3[2, 2] =  ct
-        self.T3[0, 3] = self.L[3] * ct
-        self.T3[1, 3] = 0
-        self.T3[2, 3] = self.L[3] * st
+    def compute_Tel(self): # elbow
+        self.T_el = self.Trans(0, 0, self.L[2])
+        return self.T_el
 
+    def compute_T3(self, q3):
+        self.T3 = self.RotZ(q3 + np.pi / 2).dot(self.Trans(0, 0, 0).dot(self.RotX(np.pi / 2)))
         return self.T3
-    def compute_T4(self,q4):
-        ct = np.cos(q4)
-        st = np.sin(q4)
 
-        self.T4[1, 1] =  ct
-        self.T4[1, 2] = -st
-        self.T4[2, 1] =  st
-        self.T4[2, 2] =  ct
-        self.T4[0, 3] = self.L[4]
-        self.T4[1, 3] = 0
-        self.T4[2, 3] = 0
-
+    def compute_T4(self, q4):
+        self.T4 = self.RotZ(q4).dot(self.Trans(0, 0, 0).dot(self.RotX(-np.pi / 2)))
         return self.T4
-    def compute_T5(self,q5):
-        ct = np.cos(q5)
-        st = np.sin(q5)
 
-        self.T5[0, 0] =  ct
-        self.T5[0, 2] =  st
-        self.T5[2, 0] = -st
-        self.T5[2, 2] =  ct
-        self.T5[0, 3] = self.L[5] * ct
-        self.T5[1, 3] = 0
-        self.T5[2, 3] = self.L[5] * st
+    def compute_Twr(self):  # wrest
+        self.T_wr = self.RotZ(-np.pi / 2).dot(self.Trans(0, 0, self.L[3]))
+        return self.T_wr
 
+    def compute_T5(self, q5):
+        self.T5 = self.RotZ(q5).dot(self.Trans(0, 0, 0).dot(self.RotX(-np.pi / 2)))
         return self.T5
 
-    def compute_T_sh(self, q0, q1):
-        # shoulder
-        return np.dot(self.compute_T0(q0), self.compute_T1(q1))
-    def compute_T_el(self, q0, q1, q2, q3):
-        # elbow
-        return np.dot(np.dot(self.compute_T_sh(q0, q1), self.compute_T2(q2)),self.compute_T3(q3))
-    def compute_T_wr(self, q0, q1, q2, q3, q4, q5):
-        # wrest
-        return np.dot(np.dot(self.compute_T_el(q0, q1, q2, q3), self.compute_T4(q4)),self.compute_T5(q5))
+    def compute_T6(self, q6):
+        self.T6 = self.RotZ(q6).dot(self.Trans(0, 0, 0).dot(self.RotX(np.pi / 2).dot(self.RotZ(-np.pi / 2))))
+        return self.T6
+
+    def compute_Teef(self):  # end effector
+        self.T_eef = self.Trans(0, 0, self.L[4])
+        return self.T_eef
+
+    ''' Transformation matrix from global coordinate to an certain part'''
+
+    def compute_T0_sh(self, q1, q2):  # shoulder
+        self.Tglobal2sh =  self.compute_T0().dot(self.compute_T1(q1).dot(self.compute_T2(q2)))
+        return self.Tglobal2sh
+
+    def compute_T0_el(self, q1, q2, q3, q4):  # elbow
+        self.Tglobal2el = self.compute_T0_sh(q1, q2).dot(self.compute_Tel().dot(self.compute_T3(q3).dot(self.compute_T4(q4))))
+        return self.Tglobal2el
+
+    def compute_T0_wr(self, q1, q2, q3, q4, q5, q6):  # wrest
+        self.Tglobal2wr = self.compute_T0_el(q1, q2, q3, q4).dot(self.compute_Twr().dot(self.compute_T5(q5).dot(self.compute_T6(q6))))
+        return self.Tglobal2wr
+
+    def compute_T0_eef(self, q1, q2, q3, q4, q5, q6):  # end effector
+        self.Tglobal2eef = self.compute_T0_wr(q1, q2, q3, q4, q5, q6).dot(self.compute_Teef())
+        return self.Tglobal2eef
+
 
     # toolkit for homogenous coordinates
     def homogenous2space(self,v):
@@ -262,7 +235,7 @@ class Generator():
         :param q: the angle of each joint
         :return: the final rotation matrix and translation
         """
-        T = self.compute_T_wr(q[0],q[1],q[2],q[3],q[4],q[5])
+        T = self.compute_T0_wr(q[0],q[1],q[2],q[3],q[4],q[5])
         R = T[0:3,0:3]
         t = T[0:3,3]
 
@@ -276,20 +249,18 @@ class Generator():
         :return: the list of x, y, z coord of each joint
         """
         joint_pos_init = np.array([0,0,0,1])
-        self.compute_T_wr(q[0], q[1], q[2], q[3], q[4], q[5])
+        #self.compute_T_wr(q[0], q[1], q[2], q[3], q[4], q[5])
+        self.compute_T0_eef(q[0], q[1], q[2], q[3], q[4], q[5])
 
+        origin = self.Trans(0, 0, 0)[0:3, -1]
+        T0_sh  = self.compute_T0_sh(q[0], q[1])[0:3, -1]
+        T0_el  = self.compute_T0_el(q[0], q[1], q[2], q[3], )[0:3, -1]
+        T0_wr  = self.compute_T0_wr(q[0], q[1], q[2], q[3], q[4], q[5])[0:3, -1]
+        T0_eef = self.compute_T0_eef(q[0], q[1], q[2], q[3], q[4], q[5])[0:3, -1]
 
-        joint_pos0 = self.T0.dot(joint_pos_init)
-        joint_pos1 = self.T1.dot(joint_pos0)
-        joint_pos2 = self.T2.dot(joint_pos1)
-        joint_pos3 = self.T3.dot(joint_pos2)
-        joint_pos4 = self.T4.dot(joint_pos3)
-        joint_pos5 = self.T5.dot(joint_pos4)
-
-
-        x = [0, joint_pos0[0]]#, joint_pos1[0], joint_pos2[0], joint_pos3[0], joint_pos4[0], joint_pos5[0]]
-        y = [0, joint_pos0[1]]#, joint_pos1[1], joint_pos2[1], joint_pos3[1], joint_pos4[1], joint_pos5[1]]
-        z = [0, joint_pos0[2]]#, joint_pos1[2], joint_pos2[2], joint_pos3[2], joint_pos4[2], joint_pos5[2]]
+        x = [0, T0_sh[0], T0_el[0], T0_wr[0], T0_eef[0]]
+        y = [0, T0_sh[1], T0_el[1], T0_wr[1], T0_eef[1]]
+        z = [0, T0_sh[2], T0_el[2], T0_wr[2], T0_eef[2]]
 
         return x,y,z
 
@@ -314,7 +285,7 @@ class Generator():
         ref5 = self.T4.dot(ref4)
         ref6 = self.T5.dot(ref5)
 
-        list_ref = np.array([ref0, ref1])#, ref2, ref3, ref4, ref5, ref6])
+        list_ref = np.array([ref0, ref1, ref2, ref3, ref4, ref5, ref6])
 
         return list_ref
 

@@ -9,7 +9,9 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 #from mymodules import fk_module
 #from mymodules import Closed_form_ik
-from kinematic_generator import Generator
+from Arm import Arm
+
+from utils import *
 
 import glob
 import socket
@@ -76,7 +78,7 @@ class Application(QtWidgets.QWidget):
         self.axis_zlabel = "Z-axis"
         self.axis_xlim3d = [-0.3, 0.3]
         self.axis_ylim3d = [-0.3, 0.3]
-        self.axis_zlim3d = [0, 0.15  ]
+        self.axis_zlim3d = [-0.3, 0.3]
 
         # set the label for each axis
         self.axis.set_xlabel(self.axis_xlabel)
@@ -215,7 +217,7 @@ class Application(QtWidgets.QWidget):
         """
         method linked to the button draw
         """
-        q = np.array(self.get_input()).astype(float)
+        q = deg2rad(np.array(self.get_input()).astype(float))
         print(q)
         if not self.check_input(q):
             # no valid input
@@ -229,7 +231,7 @@ class Application(QtWidgets.QWidget):
 
             self.clear_figure() # clear figure
             self.draw_arm([x, y, z]) # draw the arm
-            self.draw_ref(list_ref)
+            #self.draw_ref(list_ref)
             self.FigureCanvas.draw()
 
 
@@ -335,14 +337,17 @@ class Application(QtWidgets.QWidget):
         :param ref: list of reference frame [0,x,y,z], vectors have a scale of 1
         """
         # scaling down the ref
-        scale = (self.axis_xlim3d[1] - self.axis_xlim3d[0]) * 0.1
-        #list_ref *= scale
+        scale_x = (self.axis_xlim3d[1] - self.axis_xlim3d[0]) * 0.1
+        scale_y = (self.axis_ylim3d[1] - self.axis_ylim3d[0]) * 0.1
+        scale_z = (self.axis_zlim3d[1] - self.axis_zlim3d[0]) * 0.1
+
         print(list_ref[0])
         for i in range(len(list_ref)):
 
-            ref = list_ref[i].T
-            ref = np.array([ref[0], ref[0] + ref[1]*scale, ref[0], ref[0] + ref[2]*scale, ref[0], ref[0] + ref[3]*scale]).T[0:3]
-            print('ref {} :\n'.format(i), ref)
+            pre_ref = list_ref[i].T
+            ref = np.array([pre_ref[0], pre_ref[0] + pre_ref[1]*scale_x, pre_ref[0], pre_ref[0] + pre_ref[2]*scale_y, pre_ref[0], pre_ref[0] + pre_ref[3]*scale_z]).T[0:3]
+            #print('ref {} :\n'.format(i), ref)
+            print('T0 : \n', self.arm.kinematic.T0)
             self.axis.plot(ref[0], ref[1], ref[2], color='grey', linewidth = 2.0)
             self.axis.scatter(ref[0], ref[1], ref[2], color='grey', linewidth = 2.0)
 
