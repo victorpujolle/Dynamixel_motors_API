@@ -13,7 +13,7 @@ class Arm(DXSerialAPI):
     """
 
 
-    def __init__(self, PORT_NAME, BAUDRATE, TIME_OUT=0.001, joint_number=6, motor_number=6, motors_id=None, joints2motors=None):
+    def __init__(self, PORT_NAME, BAUDRATE, TIME_OUT=0.001, joint_number=6, motor_number=6, motors_id=None):
 
         # __init__ of the parent class
         super(Arm, self).__init__(PORT_NAME, BAUDRATE, TIME_OUT=TIME_OUT)
@@ -22,7 +22,6 @@ class Arm(DXSerialAPI):
         self.joint_number = joint_number # number of joint of the arm
         self.motor_number = motor_number # number of motor of the arm
         self.motors_id = motors_id # i :  the id of the motors, motors_id : real id of the device (in term of serial communication)
-        self.joints2motors = joints2motors # i : the id of the joint, joints2motors[i] : the motor(s) linked to the joints
 
         # motors values that have to be initialized by reading the state of each motors in the - initialisation - function
         self.motors_angle_limits_byte = [] # the i-th element this list will contains [angle_clockwise_limit , angle_counterclockwise_limit] of the i-th motor (byte units used)
@@ -34,6 +33,7 @@ class Arm(DXSerialAPI):
         self.ANGLES_INIT = np.array([60, 100, 140, 220, 145, 220]) # angles initialisation of each JOINTS (not motors!!!!)
         self.DX_SPEED = 100 # speed of the motors
         self.LINKS_LENGTH = [0.045, 0.11, 0.04, 0.04, 0.11, 0.13] # links length
+        self.TRANS_ORIGIN = [0, 0, 0.26] # the translation between the origin of the world referecne and the origin of the robot
         self.ANGLE_OFFSET = np.array([150, 132, 150, 150, 150, 150]) # angle offset used to calculate DH parameters (because the angle origin of the motors is not the same that the angle origin of the DH param)
         self.ANGLE_LIMIT_INF = [-90, -90, -90, -90, -90, -90]
         self.ANGLE_LIMIT_SUP = [90, 90, 90, 90, 90, 90]
@@ -46,15 +46,8 @@ class Arm(DXSerialAPI):
         self.joint_position = np.zeros((self.joint_number)) # position of each joint
 
         # variables used for kinematics computation
-        self.kinematic = Generator(self.LINKS_LENGTH, self.ANGLE_LIMIT_INF, self.ANGLE_LIMIT_SUP)
-        self.DH_parameters = np.zeros((self.joint_number,4)) # DH param : d, theta,r, alpha
-        self.T_list = np.zeros((self.joint_number, 4, 4)) # list of the transfert matrix of each joint
-        self.T_total = np.eye(4) # the total transfert matrix of the arm
+        self.kinematic = Generator(self.LINKS_LENGTH, self.ANGLE_OFFSET, self.TRANS_ORIGIN, self.ANGLE_LIMIT_INF, self.ANGLE_LIMIT_SUP)
 
-        self.J = np.zeros((3,4))       # Jacobian
-        self.JJt = np.zeros((3,3))     # J * transpose(J)
-        self.invJJt = np.zeros((3,3))  # inverse of JJt
-        self.JinvJJt = np.zeros((3,4)) # J*invJJt
 
 
     # ------------- READING -------------
@@ -154,28 +147,6 @@ class Arm(DXSerialAPI):
 
         self.set_arm_position(angles)
 
-        return 0
-
-    def initialize_DH_param(self, DH_param=None):
-        """
-        Initialisation of the DH parameters of the arm
-        :param DH_param: if you want to specify of value to this function, if None the default values will be used (modify the function to adapt it to your arm)
-        """
-        if DH_param is not None:
-            self.DH_parameters = np.copy(DH_param)
-        else:
-            if not (self.flag_is_position_init):
-                raise ValueError('The position has not been initialized, you need to initialize the position with set_arm_position or initialize_position before computing DH parameters')
-
-            self.DH_parameters = np.array([
-                [self.LINKS_LENGTH[0], (self.joint_position[0] + self.ANGLE_OFFSET_BYTE[0] * self.ANGLE_UNIT) / (360 / (2 * np.pi)), 0                   , 0],
-                [0                   , (self.joint_position[1] + self.ANGLE_OFFSET_BYTE[1] * self.ANGLE_UNIT) / (360 / (2 * np.pi)), self.LINKS_LENGTH[1], np.pi / 2],
-                [self.LINKS_LENGTH[2], (self.joint_position[2] + self.ANGLE_OFFSET_BYTE[2] * self.ANGLE_UNIT) / (360 / (2 * np.pi)), 0                   , 0],
-                [0                   , (self.joint_position[3] + self.ANGLE_OFFSET_BYTE[3] * self.ANGLE_UNIT) / (360 / (2 * np.pi)), self.LINKS_LENGTH[3], np.pi / 2],
-                [self.LINKS_LENGTH[4], (self.joint_position[4] + self.ANGLE_OFFSET_BYTE[4] * self.ANGLE_UNIT) / (360 / (2 * np.pi)), 0                   , 0],
-                [0                   , (self.joint_position[5] + self.ANGLE_OFFSET_BYTE[5] * self.ANGLE_UNIT) / (360 / (2 * np.pi)), self.LINKS_LENGTH[5], np.pi / 2],
-            ])
-        self.flag_is_DH_param_init = True
         return 0
 
     # -----------------------------------
@@ -287,289 +258,6 @@ class Arm(DXSerialAPI):
         max6 = self.motors_angle_limits_byte[6][1] * self.ANGLE_UNIT
         print(min6, max6)
         move_joint_from_min_to_max(6, min6, max6)
-
-    # ------------------------------------
-
-
-    # deprecated TODO : suppress this
-    # ------------- FORWARD KINEMATICS -------------
-
-    def calculate_T(self, d, theta, r, alpha):
-        """
-        calculate the Denavit and Hartenberg matrix for a joint
-        :param d: link offset
-        :param r: link length
-        :param alpha: link twist
-        :param theta: link angle
-        :return: the Denavit and Hartenberg matrix
-        """
-        T = np.zeros((4,4))
-
-        ct, st, ca, sa = 0, 0, 0, 0
-
-        if  round(theta, 5) == 0: # zero case
-            ct = 1
-            st = 0
-        elif round(theta, 5) == round(np.pi / 2, 5): # pi/2 case
-            ct = 0
-            st = 1
-        elif round(theta, 5) == round(np.pi, 5):  # pi case
-            ct = -1
-            st = 0
-        elif round(theta, 5) == round(3 * np.pi / 2, 5):  # 3pi/2 case
-            ct = 0
-            st = -1
-        else: # general case
-            ct = np.cos(theta)
-            st = np.sin(theta)
-
-        if round(alpha, 5) == 0: # zero case
-            ca = 1
-            sa = 0
-        elif round(alpha, 5) == round(np.pi/2, 5): # pi/2 case
-            ca = 0
-            sa = 1
-        elif round(alpha, 5) == round(np.pi, 5):  # pi case
-            ca = -1
-            sa = 0
-        elif round(alpha, 5) == round(3 * np.pi / 2, 5):  # 3pi/2 case
-            ca = 0
-            sa = -1
-        else: # general case
-            ca = np.cos(alpha)
-            sa = np.sin(alpha)
-
-        # rotation, first line
-        T[0, 0] = ct
-        T[0, 1] = - st * ca
-        T[0, 2] = st * sa
-
-        # rotation second line
-        T[1, 0] = st
-        T[1, 1] = ct * ca
-        T[1, 2] = - ct * sa
-
-        # rotation last line
-        T[2, 1] = sa
-        T[2, 2] = ca
-
-        # translation
-        T[0, 3] = r * ct
-        T[1, 3] = r * st
-        T[2, 3] = d
-
-        # last value
-        T[3, 3] = 1
-
-        return T
-
-    def calculate_forward_kinematics_matrices(self):
-        """
-        This function calculates the complete forward kinematics matrix of the arm
-        :return: T the total kinematics matrix = T1 * T2 * ... * Tn
-        """
-        if not(self.flag_is_DH_param_init):
-            raise ValueError('The DH parameters have not been initialized, you need to initialize the DH parameters with initialze_DH_param before computing Denavit–Hartenberg matrices')
-
-        for joint in range(self.joint_number):
-            self.T_list[joint] = self.calculate_T(self.DH_parameters[joint][0],self.DH_parameters[joint][1],self.DH_parameters[joint][2],self.DH_parameters[joint][3])
-            self.T_total = self.T_total.dot(self.T_list[joint])
-
-        T0 = np.eye(4)
-        T1 = np.eye(4)
-        T2 = np.eye(4)
-        T3 = np.eye(4)
-        T4 = np.eye(4)
-        T5 = np.eye(4)
-
-        theta1 = q[0]
-        theta2 = q[1]
-        theta3 = q[2]
-        theta4 = q[3]
-        theta5 = q[4]
-        theta6 = q[5]
-
-        L1 = self.L[0]
-        L2 = self.L[1]
-        L3 = self.L[2]
-        L4 = self.L[3]
-        L5 = self.L[4]
-        L6 = self.L[5]
-
-        theta1 = 0
-        theta2 = 0
-        theta3 = 0
-        theta4 = 0
-        theta5 = 0
-        theta6 = 0
-
-        print('joint 0 en degree :', theta1 * (360 / (2 * np.pi)))
-        print('joint 1 en degree :', theta2 * (360 / (2 * np.pi)))
-        print('joint 2 en degree :', theta3 * (360 / (2 * np.pi)))
-        print('joint 3 en degree :', theta4 * (360 / (2 * np.pi)))
-        print('joint 4 en degree :', theta5 * (360 / (2 * np.pi)))
-        print('joint 5 en degree :', theta6 * (360 / (2 * np.pi)))
-
-        print('L0 =',self.LINKS_LENGTH[0] ,'m')
-        print('L1 =',self.LINKS_LENGTH[1] ,'m')
-        print('L2 =',self.LINKS_LENGTH[2] ,'m')
-        print('L3 =',self.LINKS_LENGTH[3] ,'m')
-        print('L4 =',self.LINKS_LENGTH[4] ,'m')
-        print('L5 =',self.LINKS_LENGTH[5] ,'m')
-
-
-        ct1 = np.cos(theta1)
-        ct2 = np.cos(theta2)
-        ct3 = np.cos(theta3)
-        ct4 = np.cos(theta4)
-        ct5 = np.cos(theta5)
-        ct6 = np.cos(theta6)
-
-        st1 = np.sin(theta1)
-        st2 = np.sin(theta2)
-        st3 = np.sin(theta3)
-        st4 = np.sin(theta4)
-        st5 = np.sin(theta5)
-        st6 = np.sin(theta6)
-
-        L1 = self.LINKS_LENGTH[0]
-        L2 = self.LINKS_LENGTH[1]
-        L3 = self.LINKS_LENGTH[2]
-        L4 = self.LINKS_LENGTH[3]
-        L5 = self.LINKS_LENGTH[4]
-        L6 = self.LINKS_LENGTH[5]
-
-        T0[0, 0] = ct1
-        T0[0, 1] =-st1
-        T0[1, 0] = st1
-        T0[1, 1] = ct1
-
-        T1[0, 0] = ct2
-        T1[0, 2] = st2
-        T1[2, 0] =-st2
-        T1[2, 2] = ct2
-
-        T2[1, 1] = ct3
-        T2[1, 2] =-st3
-        T2[2, 1] = st3
-        T2[2, 2] = ct3
-
-        T3[0, 0] = ct4
-        T3[0, 2] = st4
-        T3[2, 0] =-st4
-        T3[2, 2] = ct4
-
-        T4[1, 1] = ct5
-        T4[1, 2] =-st5
-        T4[2, 1] = st5
-        T4[2, 2] = ct5
-
-        T5[0, 0] = ct6
-        T5[0, 2] = st6
-        T5[2, 0] =-st6
-        T5[2, 2] = ct6
-
-        T0[0, 3] = 0
-        T0[1, 3] = 0
-        T0[2, 3] = L1
-
-        T1[0, 3] = L2 * ct2
-        T1[1, 3] = 0
-        T1[2, 3] = L2 * st2
-
-        T2[0, 3] = L3
-        T2[1, 3] = 0
-        T2[2, 3] = 0
-
-        T3[0, 3] = L4 * ct4
-        T3[1, 3] = 0
-        T3[2, 3] = L4 * st4
-
-        T4[0, 3] = L5
-        T4[1, 3] = 0
-        T4[2, 3] = 0
-
-        T5[0, 3] = L6 * ct6
-        T5[1, 3] = 0
-        T5[2, 3] = L6 * st6
-
-        print('T0 =\n',T0)
-        print('T1 =\n',T1)
-        print('T2 =\n',T2)
-        print('T3 =\n',T3)
-        print('T4 =\n',T4)
-        print('T5 =\n',T5)
-
-    def calcutate_resultant_vector(self, P, T=None):
-        """
-        This function computes the dot product T.P, which gives this vector in the referenciel of the effector
-        :param P: vector
-        :param T: the transformation matrix
-        :return: P but transformed by the robot
-        """
-        T = self.T_total if T is None else T # T default value is self.T_total
-
-        return T.dot(P)
-
-    # -----------------------------------
-
-    # ------------- 3D DISPLAY -------------
-
-    def display_3d_robot(self):
-        """
-        this function displays a 3D representation of the robot's joints
-        unit is the meter
-        """
-        fig = plt.figure()
-        ax = plt.axes(projection='3d')
-
-        origin = np.array([0, 0, 0, 1])
-        origin_x = np.array([1, 0, 0, 1])
-        origin_y = np.array([0, 1, 0, 1])
-        origin_z = np.array([0, 0, 1, 1])
-        origin_ref = np.array([origin_x, origin, origin_y, origin, origin_z]).T
-
-        ax.plot3D(origin_ref[0], origin_ref[1], origin_ref[2])
-        T = np.eye(4)
-        arm_origins = [origin]
-        ref = [origin_ref]
-
-        for joint in range(self.joint_number):
-            T = T.dot(self.T_list_hard[joint])
-            print('T', joint+1, ':\n',np.round(self.T_list_hard[joint],2))
-
-            new_origin = T.dot(origin)
-            arm_origins.append(new_origin)
-
-            new_origin_x = T.dot(origin_x)
-            new_origin_y = T.dot(origin_y)
-            new_origin_z = T.dot(origin_z)
-
-            new_origin_ref = np.array([new_origin_x, new_origin, new_origin_y, new_origin, new_origin_z]).T
-            ref.append(new_origin_ref)
-
-
-        arm_origins = np.array(arm_origins).T
-        print('arm joints :\n',arm_origins.T)
-
-        ax.plot3D(arm_origins[0], arm_origins[1], arm_origins[2])
-        ax.scatter3D(arm_origins[0], arm_origins[1], arm_origins[2])
-
-        #for r in ref:
-        #    ax.plot3D(r[0],r[1],r[2])
-
-        ax.set_xlabel('X axis')
-        ax.set_ylabel('Y axis')
-        ax.set_zlabel('Z axis')
-
-        ax.set_xlim(-3, 3)
-        ax.set_ylim(-3, 3)
-        ax.set_zlim(0, 5)
-
-
-        plt.show()
-
-    # -----------------------------------
 
 
 

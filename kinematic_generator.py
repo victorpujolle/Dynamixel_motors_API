@@ -6,7 +6,7 @@ class Generator():
     This class is used for all kinematics calculation of the arm
     """
 
-    def __init__(self, L, Q_MIN, Q_MAX):
+    def __init__(self, L, OFFSET, ORIGIN_TRANS, Q_MIN, Q_MAX):
         """
         init the const value of the arm
         :param L: length of each links
@@ -14,6 +14,8 @@ class Generator():
         :param Q_MAX: values of each q_max for each links (unit : rad)
         """
         self.L = L
+        self.OFFSET = OFFSET
+        self.ORIGIN_TRANS = ORIGIN_TRANS
         self.Q_MIN = Q_MIN
         self.Q_MAX = Q_MAX
 
@@ -58,7 +60,8 @@ class Generator():
 
     def compute_T0(self):
         # return self.RotY(math.pi/2) @ self.Trans(0,0,-self.L[0])
-        self.T0 = self.RotY(np.pi / 2).dot(self.Trans(0, 0, self.L[0]))
+        #self.T0 = self.RotY(np.pi / 2).dot(self.Trans(0, 0, self.L[0]))
+        self.T0 = self.Trans(self.ORIGIN_TRANS[0], self.ORIGIN_TRANS[1], self.ORIGIN_TRANS[2])
         return self.T0
 
     def compute_T1(self, q1):
@@ -68,10 +71,11 @@ class Generator():
 
     def compute_T2(self, q2):
         self.T2 = self.RotZ(q2 + np.pi / 2).dot(self.Trans(0, 0, 0).dot(self.RotX(np.pi / 2)))
+        #self.T2 = self.RotZ(q2).dot(self.Trans(self.L[1],0,0))
         return self.T2
 
     def compute_Tel(self): # elbow
-        self.T_el = self.Trans(0, 0, self.L[2])
+        self.T_el = self.Trans(0, 0, self.L[0] + self.L[1])
         return self.T_el
 
     def compute_T3(self, q3):
@@ -83,7 +87,7 @@ class Generator():
         return self.T4
 
     def compute_Twr(self):  # wrest
-        self.T_wr = self.RotZ(-np.pi / 2).dot(self.Trans(0, 0, self.L[3]))
+        self.T_wr = self.RotZ(-np.pi / 2).dot(self.Trans(0, 0, self.L[2] + self.L[3]))
         return self.T_wr
 
     def compute_T5(self, q5):
@@ -258,22 +262,9 @@ class Generator():
         T0_wr  = self.compute_T0_wr(q[0], q[1], q[2], q[3], q[4], q[5])[0:3, -1]
         T0_eef = self.compute_T0_eef(q[0], q[1], q[2], q[3], q[4], q[5])[0:3, -1]
 
-        p0 = self.T0.dot(origin)
-        p1 = self.T1.dot(p0)
-        p2 = self.T2.dot(p1)
-        p3 = self.T3.dot(p2)
-        p4 = self.T4.dot(p3)
-        p5 = self.T5.dot(p4)
-
-
-
         x = [0, T0_sh[0], T0_el[0], T0_wr[0], T0_eef[0]]
         y = [0, T0_sh[1], T0_el[1], T0_wr[1], T0_eef[1]]
         z = [0, T0_sh[2], T0_el[2], T0_wr[2], T0_eef[2]]
-
-        #x = [0, p0[0], p1[0], p2[0], p3[0], p4[0], p5[0]]
-        #y = [0, p0[1], p1[1], p2[1], p3[1], p4[1], p5[1]]
-        #z = [0, p0[2], p1[2], p2[2], p3[2], p4[2], p5[2]]
 
         return x,y,z
 

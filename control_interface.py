@@ -78,7 +78,7 @@ class Application(QtWidgets.QWidget):
         self.axis_zlabel = "Z-axis"
         self.axis_xlim3d = [-0.2, 0.2]
         self.axis_ylim3d = [-0.2, 0.2]
-        self.axis_zlim3d = [-0.2, 0.2]
+        self.axis_zlim3d = [0, 0.4]
 
         # set the label for each axis
         self.axis.set_xlabel(self.axis_xlabel)
@@ -227,6 +227,7 @@ class Application(QtWidgets.QWidget):
             R,t = self.arm.kinematic.compute_FK(q) # compute the total kinematics
             x,y,z = self.arm.kinematic.compute_pose(q) # compute all partial kinematics
             self.set_output([t[0], t[1], t[2]]) # set the output
+
             list_ref = self.arm.kinematic.compute_ref(q)  # compute all the local ref
 
             self.clear_figure() # clear figure

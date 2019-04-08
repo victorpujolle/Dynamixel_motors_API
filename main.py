@@ -24,8 +24,7 @@ if __name__ == '__main__':
     joint_number = 6
     motor_number = 7
     motors_id = [0,1,2,3,4,5,6]
-    joints2motors = [[0],[1,2],[3],[4],[5],[6]]
-    ArmAPI = Arm(PORT_NAME, BAUDRATE, TIME_OUT=TIME_OUT, joint_number=joint_number, motor_number=motor_number, motors_id=motors_id, joints2motors=joints2motors)
+    ArmAPI = Arm(PORT_NAME, BAUDRATE, TIME_OUT=TIME_OUT, joint_number=joint_number, motor_number=motor_number, motors_id=motors_id)
     # -------------------------------------------------------------------------------------------------
 
     # --------------------------------------- MOUVEMENTS TESTS ----------------------------------------
