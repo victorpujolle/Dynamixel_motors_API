@@ -102,7 +102,7 @@ class Arm(DXSerialAPI):
         joint_angles.pop(2)
         self.joint_angles = np.array(joint_angles) - self.ANGLE_OFFSET
 
-        print(self.joint_angles)
+        #print(self.joint_angles)
 
         return 0
 
@@ -196,7 +196,7 @@ class Arm(DXSerialAPI):
     def set_arm_position(self, angles):
         """
         This function sets the position of all the joints
-        :param angles: the goal position
+        :param angles: the goal position (degree units)
         """
         if len(angles) != self.joint_number:
             raise ValueError('The length of the input angles : the input list has a length of {} and  this length should be the number of joint {} '.format(len(angles),self.joint_number))

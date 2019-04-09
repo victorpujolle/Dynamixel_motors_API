@@ -70,7 +70,7 @@ class Generator():
         return self.T1
 
     def compute_T2(self, q2):
-        self.T2 = self.RotZ(q2 + np.pi / 2).dot(self.Trans(0, 0, 0).dot(self.RotX(np.pi / 2)))
+        self.T2 = self.RotZ(q2 + np.pi).dot(self.Trans(0, 0, 0).dot(self.RotX(np.pi / 2)))
         #self.T2 = self.RotZ(q2).dot(self.Trans(self.L[1],0,0))
         return self.T2
 
@@ -285,6 +285,7 @@ class Generator():
         T0_wr  = self.compute_T0_wr(q[0], q[1], q[2], q[3], q[4], q[5])
         T0_eef = self.compute_T0_eef(q[0], q[1], q[2], q[3], q[4], q[5])
 
+        origin_T0 = origin[0:3, -1]
         origin_T0_sh  = T0_sh[0:3, -1]
         origin_T0_el  = T0_el[0:3, -1]
         origin_T0_wr  = T0_wr[0:3, -1]
@@ -300,8 +301,8 @@ class Generator():
         frame_wr = rot_T0_wr.dot(frame)
         frame_eef = rot_T0_eef.dot(frame)
 
-        list_vector_frame = np.array([frame_sh, frame_el, frame_wr, frame_eef])
-        list_origin_frame = np.array([origin_T0_sh, origin_T0_el, origin_T0_wr, origin_T0_eef])
+        list_vector_frame = np.array([frame, frame_sh, frame_el, frame_wr, frame_eef])
+        list_origin_frame = np.array([origin_T0, origin_T0_sh, origin_T0_el, origin_T0_wr, origin_T0_eef])
 
         return list_vector_frame, list_origin_frame
 

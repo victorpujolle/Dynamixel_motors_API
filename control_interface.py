@@ -73,9 +73,9 @@ class Application(QtWidgets.QWidget):
         self.FigureLayout.addWidget(self.FigureCanvas)
         self.axis = self.Figure.add_subplot(121, projection='3d')
 
-        self.axis_xlabel = "X-axis"
-        self.axis_ylabel = "Y-axis"
-        self.axis_zlabel = "Z-axis"
+        self.axis_xlabel = "X"
+        self.axis_ylabel = "Y"
+        self.axis_zlabel = "Z"
         self.axis_xlim3d = [-0.4, 0.4]
         self.axis_ylim3d = [-0.4, 0.4]
         self.axis_zlim3d = [0, 0.8]
@@ -99,6 +99,7 @@ class Application(QtWidgets.QWidget):
 
         self.inputlabel = QtWidgets.QLabel(self)
         self.outputlabel = QtWidgets.QLabel(self)
+        self.robot_poslabel = QtWidgets.QLabel(self)
 
         self.xlabel = QtWidgets.QLabel(self)
         self.ylabel = QtWidgets.QLabel(self)
@@ -130,8 +131,17 @@ class Application(QtWidgets.QWidget):
         self.deg4textbox = QtWidgets.QLineEdit(self)
         self.deg5textbox = QtWidgets.QLineEdit(self)
 
+        self.throbot0textbox = QtWidgets.QLineEdit(self)
+        self.throbot1textbox = QtWidgets.QLineEdit(self)
+        self.throbot2textbox = QtWidgets.QLineEdit(self)
+        self.throbot3textbox = QtWidgets.QLineEdit(self)
+        self.throbot4textbox = QtWidgets.QLineEdit(self)
+        self.throbot5textbox = QtWidgets.QLineEdit(self)
+
         # Create the button objects
         self.drowbutton = QtWidgets.QPushButton('draw', self)
+        self.readposbutton = QtWidgets.QPushButton('read', self)
+        self.movebutton = QtWidgets.QPushButton('move', self)
 
         # Resize text box
         self.xtextbox.resize(100, 20)
@@ -145,23 +155,33 @@ class Application(QtWidgets.QWidget):
         self.deg4textbox.resize(100, 20)
         self.deg5textbox.resize(100, 20)
 
+        self.throbot0textbox.resize(100, 20)
+        self.throbot1textbox.resize(100, 20)
+        self.throbot2textbox.resize(100, 20)
+        self.throbot3textbox.resize(100, 20)
+        self.throbot4textbox.resize(100, 20)
+        self.throbot5textbox.resize(100, 20)
+
         # set the size of the button object
         self.drowbutton.resize(100, 30)
+        self.readposbutton.resize(100, 30)
+        self.movebutton.resize(100,30)
 
         # set the name of each label
-        self.inputlabel.setText('INPUT')
-        self.outputlabel.setText('OUTPUT')
+        self.inputlabel.setText('INPUT SIMULATION')
+        self.outputlabel.setText('OUTPUT SIMULATION')
+        self.robot_poslabel.setText('ROBOT POSITION')
 
-        self.xlabel.setText('x')
-        self.ylabel.setText('y')
-        self.zlabel.setText('z')
+        self.xlabel.setText('x :')
+        self.ylabel.setText('y :')
+        self.zlabel.setText('z :')
 
-        self.th0label.setText('th0')
-        self.th1label.setText('th1')
-        self.th2label.setText('th2')
-        self.th3label.setText('th3')
-        self.th4label.setText('th4')
-        self.th5label.setText('th5')
+        self.th0label.setText('th0 :')
+        self.th1label.setText('th1 :')
+        self.th2label.setText('th2 :')
+        self.th3label.setText('th3 :')
+        self.th4label.setText('th4 :')
+        self.th5label.setText('th5 :')
 
         self.deg0label.setText('[deg]')
         self.deg1label.setText('[deg]')
@@ -189,12 +209,21 @@ class Application(QtWidgets.QWidget):
         self.deg4textbox.move(50, 30 + 120)
         self.deg5textbox.move(50, 30 + 150)
 
-        self.deg0label.move(150, 30)
-        self.deg1label.move(150, 30 + 30)
-        self.deg2label.move(150, 30 + 60)
-        self.deg3label.move(150, 30 + 90)
-        self.deg4label.move(150, 30 + 120)
-        self.deg5label.move(150, 30 + 150)
+        self.deg0label.move(300, 30)
+        self.deg1label.move(300, 30 + 30)
+        self.deg2label.move(300, 30 + 60)
+        self.deg3label.move(300, 30 + 90)
+        self.deg4label.move(300, 30 + 120)
+        self.deg5label.move(300, 30 + 150)
+
+        self.throbot0textbox.move(200, 30)      
+        self.throbot1textbox.move(200, 30 + 30) 
+        self.throbot2textbox.move(200, 30 + 60) 
+        self.throbot3textbox.move(200, 30 + 90) 
+        self.throbot4textbox.move(200, 30 + 120)
+        self.throbot5textbox.move(200, 30 + 150)
+
+        self.robot_poslabel.move(200, 10)
 
         self.outputlabel.move(15, 230)
 
@@ -206,10 +235,13 @@ class Application(QtWidgets.QWidget):
         self.ztextbox.move(50, 250 + 60)
 
         self.drowbutton.move(50, 200 + 180)
+        self.readposbutton.move(200, 200 + 180)
+        self.movebutton.move(50, 380 + 50)
 
         #connect the button to the click_action
         self.drowbutton.clicked.connect(self.on_drowclick)
-
+        self.readposbutton.clicked.connect(self.on_readpos_click)
+        self.movebutton.clicked.connect(self.on_moveclick)
 
         return 0
 
@@ -217,27 +249,54 @@ class Application(QtWidgets.QWidget):
         """
         method linked to the button draw
         """
-        q = deg2rad(np.array(self.get_input()).astype(float))
-        print(q)
-        if not self.check_input(q):
+        print('--- EVENT : DRAW CLICK ---')
+        q_deg = np.array(self.get_input()).astype(float)
+        q_rad = deg2rad(q_deg)
+        print('q [deg] :', q_deg)
+        print('q [rad] :', q_rad)
+        if not self.check_input(q_rad):
             # no valid input
             return 1
         else:
             # valid input
-            R,t = self.arm.kinematic.compute_FK(q) # compute the total kinematics
+
+            # figure and UI control
+            R,t = self.arm.kinematic.compute_FK(q_rad) # compute the total kinematics
             self.set_output([t[0], t[1], t[2]]) # set the output
 
-            x, y, z = self.arm.kinematic.compute_pose(q)  # compute all partial kinematics
-            list_vector_frame, list_origin_frame = self.arm.kinematic.compute_ref(q)  # compute all the local ref
+            x, y, z = self.arm.kinematic.compute_pose(q_rad)  # compute all partial kinematics
+            #list_vector_frame, list_origin_frame = self.arm.kinematic.compute_ref(q)  # compute all the local ref
 
             self.clear_figure() # clear figure
             self.draw_arm([x, y, z]) # draw the arm
-            self.draw_ref(list_vector_frame, list_origin_frame)
+            #self.draw_ref(list_vector_frame, list_origin_frame)
             self.FigureCanvas.draw()
 
+        return 0
 
+    def on_readpos_click(self):
+        """
+        method read the postion of the robot and set the textboxes
+        """
+        print('--- EVENT : READ CLICK ---')
+        self.arm.read_arm_postion()
+        pos = self.arm.joint_angles
+        print(pos)
+
+        self.throbot0textbox.setText('{:6.2f}'.format(pos[0]))
+        self.throbot1textbox.setText('{:6.2f}'.format(pos[1]))
+        self.throbot2textbox.setText('{:6.2f}'.format(pos[2]))
+        self.throbot3textbox.setText('{:6.2f}'.format(pos[3]))
+        self.throbot4textbox.setText('{:6.2f}'.format(pos[4]))
+        self.throbot5textbox.setText('{:6.2f}'.format(pos[5]))
 
         return 0
+
+    def on_moveclick(self):
+        """
+        method linked to the button move
+        """
+        print('--- EVENT : MOVE CLICK ---')
 
     def get_input(self):
         """
@@ -335,6 +394,21 @@ class Application(QtWidgets.QWidget):
     def draw_ref(self, list_vector_frame, list_origin_frame):
         """
         draw on the figure a local reference frame
-        :param ref: list of reference frame [0,x,y,z], vectors have a scale of 1
+        :param list_vector_frame: list of reference frame rotated
+        :param list_origin_frame: list of origin points for each frame
         """
-        pass
+        # scale calculation, it is better if all the scales are the same
+        scale_x = (self.axis_xlim3d[1] - self.axis_xlim3d[0]) * 0.1
+        scale_y = (self.axis_ylim3d[1] - self.axis_ylim3d[0]) * 0.1
+        scale_z = (self.axis_zlim3d[1] - self.axis_zlim3d[0]) * 0.1
+
+        for i in range(len(list_origin_frame)):
+
+            origin = list_origin_frame[i]
+            vectors = list_vector_frame[i]
+            x_vect = vectors[0] * scale_x
+            y_vect = vectors[1] * scale_y
+            z_vect = vectors[2] * scale_z
+            ref_to_plot = np.array([origin, origin + x_vect, origin, origin + y_vect, origin, origin + z_vect,]).T
+            self.axis.plot(ref_to_plot[0], ref_to_plot[1], ref_to_plot[2], color='grey', linewidth = 2.0)
+
