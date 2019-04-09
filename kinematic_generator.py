@@ -79,11 +79,12 @@ class Generator():
         return self.T_el
 
     def compute_T3(self, q3):
-        self.T3 = self.RotZ(q3 + np.pi / 2).dot(self.Trans(0, 0, 0).dot(self.RotX(np.pi / 2)))
+        #self.T3 = self.RotZ(q3 + np.pi / 2).dot(self.Trans(0, 0, 0).dot(self.RotX(np.pi / 2)))
+        self.T3 = self.RotZ(q3).dot(self.Trans(0, 0, 0).dot(self.RotX(np.pi / 2)))
         return self.T3
 
     def compute_T4(self, q4):
-        self.T4 = self.RotZ(q4).dot(self.Trans(0, 0, 0).dot(self.RotX(-np.pi / 2)))
+        self.T4 = self.RotZ(-q4).dot(self.Trans(0, 0, 0).dot(self.RotX(-np.pi / 2)))
         return self.T4
 
     def compute_Twr(self):  # wrest
@@ -91,7 +92,7 @@ class Generator():
         return self.T_wr
 
     def compute_T5(self, q5):
-        self.T5 = self.RotZ(q5).dot(self.Trans(0, 0, 0).dot(self.RotX(-np.pi / 2)))
+        self.T5 = self.RotZ(q5 + np.pi / 2).dot(self.Trans(0, 0, 0).dot(self.RotX(-np.pi / 2)))
         return self.T5
 
     def compute_T6(self, q6):
