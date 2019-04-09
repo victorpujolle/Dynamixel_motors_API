@@ -225,14 +225,14 @@ class Application(QtWidgets.QWidget):
         else:
             # valid input
             R,t = self.arm.kinematic.compute_FK(q) # compute the total kinematics
-            x,y,z = self.arm.kinematic.compute_pose(q) # compute all partial kinematics
             self.set_output([t[0], t[1], t[2]]) # set the output
 
-            list_ref = self.arm.kinematic.compute_ref(q)  # compute all the local ref
+            x, y, z = self.arm.kinematic.compute_pose(q)  # compute all partial kinematics
+            list_vector_frame, list_origin_frame = self.arm.kinematic.compute_ref(q)  # compute all the local ref
 
             self.clear_figure() # clear figure
             self.draw_arm([x, y, z]) # draw the arm
-            #self.draw_ref(list_ref)
+            self.draw_ref(list_vector_frame, list_origin_frame)
             self.FigureCanvas.draw()
 
 
@@ -332,23 +332,9 @@ class Application(QtWidgets.QWidget):
 
         return 0
 
-    def draw_ref(self, list_ref):
+    def draw_ref(self, list_vector_frame, list_origin_frame):
         """
         draw on the figure a local reference frame
         :param ref: list of reference frame [0,x,y,z], vectors have a scale of 1
         """
-        # scaling down the ref
-        scale_x = (self.axis_xlim3d[1] - self.axis_xlim3d[0]) * 0.1
-        scale_y = (self.axis_ylim3d[1] - self.axis_ylim3d[0]) * 0.1
-        scale_z = (self.axis_zlim3d[1] - self.axis_zlim3d[0]) * 0.1
-
-        print(list_ref[0])
-        for i in range(len(list_ref)):
-
-            pre_ref = list_ref[i].T
-            ref = np.array([pre_ref[0], pre_ref[0] + pre_ref[1]*scale_x, pre_ref[0], pre_ref[0] + pre_ref[2]*scale_y, pre_ref[0], pre_ref[0] + pre_ref[3]*scale_z]).T[0:3]
-            #print('ref {} :\n'.format(i), ref)
-            print('T0 : \n', self.arm.kinematic.T0)
-            self.axis.plot(ref[0], ref[1], ref[2], color='grey', linewidth = 2.0)
-            self.axis.scatter(ref[0], ref[1], ref[2], color='grey', linewidth = 2.0)
-
+        pass

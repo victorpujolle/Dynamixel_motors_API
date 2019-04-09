@@ -274,24 +274,35 @@ class Generator():
         :param q: the angle of each joint
         :return: the list with all the referencials
         """
-        # base vectors
-        origin = np.array([0, 0, 0 ,1])
-        x_base = np.array([1, 0, 0, 1])
-        y_base = np.array([0, 1, 0, 1])
-        z_base = np.array([0, 0, 1, 1])
+        # reference frame
+        frame = np.eye(3)
 
         # base ref to draw
-        ref0 = np.array([origin, x_base, y_base, z_base]).T
-        ref1 = self.T0.dot(ref0)
-        ref2 = self.T1.dot(ref1)
-        ref3 = self.T2.dot(ref2)
-        ref4 = self.T3.dot(ref3)
-        ref5 = self.T4.dot(ref4)
-        ref6 = self.T5.dot(ref5)
+        origin = self.Trans(0, 0, 0)
+        T0_sh  = self.compute_T0_sh(q[0], q[1])
+        T0_el  = self.compute_T0_el(q[0], q[1], q[2], q[3])
+        T0_wr  = self.compute_T0_wr(q[0], q[1], q[2], q[3], q[4], q[5])
+        T0_eef = self.compute_T0_eef(q[0], q[1], q[2], q[3], q[4], q[5])
 
-        list_ref = np.array([ref0, ref1, ref2, ref3, ref4, ref5, ref6])
+        origin_T0_sh  = T0_sh[0:3, -1]
+        origin_T0_el  = T0_el[0:3, -1]
+        origin_T0_wr  = T0_wr[0:3, -1]
+        origin_T0_eef = T0_eef[0:3, -1]
 
-        return list_ref
+        rot_T0_sh  = T0_sh [0:3, 0:3]
+        rot_T0_el  = T0_el [0:3, 0:3]
+        rot_T0_wr  = T0_wr [0:3, 0:3]
+        rot_T0_eef = T0_eef[0:3, 0:3]
+
+        frame_sh = rot_T0_sh.dot(frame)
+        frame_el = rot_T0_el.dot(frame)
+        frame_wr = rot_T0_wr.dot(frame)
+        frame_eef = rot_T0_eef.dot(frame)
+
+        list_vector_frame = np.array([frame_sh, frame_el, frame_wr, frame_eef])
+        list_origin_frame = np.array([origin_T0_sh, origin_T0_el, origin_T0_wr, origin_T0_eef])
+
+        return list_vector_frame, list_origin_frame
 
 
 
