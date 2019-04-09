@@ -76,9 +76,9 @@ class Application(QtWidgets.QWidget):
         self.axis_xlabel = "X-axis"
         self.axis_ylabel = "Y-axis"
         self.axis_zlabel = "Z-axis"
-        self.axis_xlim3d = [-0.2, 0.2]
-        self.axis_ylim3d = [-0.2, 0.2]
-        self.axis_zlim3d = [0, 0.4]
+        self.axis_xlim3d = [-0.4, 0.4]
+        self.axis_ylim3d = [-0.4, 0.4]
+        self.axis_zlim3d = [0, 0.8]
 
         # set the label for each axis
         self.axis.set_xlabel(self.axis_xlabel)
