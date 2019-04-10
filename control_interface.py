@@ -99,7 +99,8 @@ class Application(QtWidgets.QWidget):
 
         self.inputlabel = QtWidgets.QLabel(self)
         self.outputlabel = QtWidgets.QLabel(self)
-        self.robot_poslabel = QtWidgets.QLabel(self)
+        self.robotpos_label = QtWidgets.QLabel(self)
+
 
         self.xlabel = QtWidgets.QLabel(self)
         self.ylabel = QtWidgets.QLabel(self)
@@ -144,6 +145,7 @@ class Application(QtWidgets.QWidget):
         self.movebutton = QtWidgets.QPushButton('move', self)
 
         # Resize text box
+
         self.xtextbox.resize(100, 20)
         self.ytextbox.resize(100, 20)
         self.ztextbox.resize(100, 20)
@@ -170,7 +172,7 @@ class Application(QtWidgets.QWidget):
         # set the name of each label
         self.inputlabel.setText('INPUT SIMULATION')
         self.outputlabel.setText('OUTPUT SIMULATION')
-        self.robot_poslabel.setText('ROBOT POSITION')
+        self.robotpos_label.setText('ROBOT POSITION')
 
         self.xlabel.setText('x :')
         self.ylabel.setText('y :')
@@ -191,61 +193,61 @@ class Application(QtWidgets.QWidget):
         self.deg5label.setText('[deg]')
 
         # set the location of each labels
-        pos = [15, 30, 50, 30, 200, 30, 255, 30]
+
 
         self.inputlabel.move(15, 10)
 
         self.th0label.move(15, 30)
-        self.th1label.move(15, 30 + 30)
-        self.th2label.move(15, 30 + 60)
-        self.th3label.move(15, 30 + 90)
-        self.th4label.move(15, 30 + 120)
-        self.th5label.move(15, 30 + 150)
+        self.th1label.move(15, 30 +   30)
+        self.th2label.move(15, 30 + 2*30)
+        self.th3label.move(15, 30 + 3*30)
+        self.th4label.move(15, 30 + 4*30)
+        self.th5label.move(15, 30 + 5*30)
 
-        self.deg0textbox.move(50, 30)
-        self.deg1textbox.move(50, 30 + 30)
-        self.deg2textbox.move(50, 30 + 60)
-        self.deg3textbox.move(50, 30 + 90)
-        self.deg4textbox.move(50, 30 + 120)
-        self.deg5textbox.move(50, 30 + 150)
+        self.deg0textbox.move(15 + 35, 30)
+        self.deg1textbox.move(15 + 35, 30 +   30)
+        self.deg2textbox.move(15 + 35, 30 + 2*30)
+        self.deg3textbox.move(15 + 35, 30 + 3*30)
+        self.deg4textbox.move(15 + 35, 30 + 4*30)
+        self.deg5textbox.move(15 + 35, 30 + 5*30)
 
-        self.deg0label.move(300, 30)
-        self.deg1label.move(300, 30 + 30)
-        self.deg2label.move(300, 30 + 60)
-        self.deg3label.move(300, 30 + 90)
-        self.deg4label.move(300, 30 + 120)
-        self.deg5label.move(300, 30 + 150)
+        self.deg0label.move(200 + 100, 30)
+        self.deg1label.move(200 + 100, 30 +   30)
+        self.deg2label.move(200 + 100, 30 + 2*30)
+        self.deg3label.move(200 + 100, 30 + 3*30)
+        self.deg4label.move(200 + 100, 30 + 4*30)
+        self.deg5label.move(200 + 100, 30 + 5*30)
 
-        self.throbot0textbox.move(200, 30)      
-        self.throbot1textbox.move(200, 30 + 30) 
-        self.throbot2textbox.move(200, 30 + 60) 
-        self.throbot3textbox.move(200, 30 + 90) 
-        self.throbot4textbox.move(200, 30 + 120)
-        self.throbot5textbox.move(200, 30 + 150)
+        self.throbot0textbox.move(200, 30)
+        self.throbot1textbox.move(200, 30 +   30)
+        self.throbot2textbox.move(200, 30 + 2*30)
+        self.throbot3textbox.move(200, 30 + 3*30)
+        self.throbot4textbox.move(200, 30 + 4*30)
+        self.throbot5textbox.move(200, 30 + 5*30)
 
-        self.robot_poslabel.move(200, 10)
+        self.robotpos_label.move(200, 10)
 
         self.outputlabel.move(15, 230)
 
         self.xlabel.move(  15, 250)
         self.ylabel.move(  15, 250 + 30)
         self.zlabel.move(  15, 250 + 60)
-        self.xtextbox.move(50, 250)
-        self.ytextbox.move(50, 250 + 30)
-        self.ztextbox.move(50, 250 + 60)
+        self.xtextbox.move(15 + 35, 250)
+        self.ytextbox.move(15 + 35, 250 + 30)
+        self.ztextbox.move(15 + 35, 250 + 60)
 
-        self.drowbutton.move(50, 200 + 180)
+        self.drowbutton.move(15 + 35, 200 + 180)
         self.readposbutton.move(200, 200 + 180)
-        self.movebutton.move(50, 380 + 50)
+        self.movebutton.move(15 + 35, 380 + 50)
 
         #connect the button to the click_action
-        self.drowbutton.clicked.connect(self.on_drowclick)
+        self.drowbutton.clicked.connect(self.on_drow_click)
         self.readposbutton.clicked.connect(self.on_readpos_click)
-        self.movebutton.clicked.connect(self.on_moveclick)
+        self.movebutton.clicked.connect(self.on_move_click)
 
         return 0
 
-    def on_drowclick(self):
+    def on_drow_click(self):
         """
         method linked to the button draw
         """
@@ -292,7 +294,7 @@ class Application(QtWidgets.QWidget):
 
         return 0
 
-    def on_moveclick(self):
+    def on_move_click(self):
         """
         method linked to the button move
         """

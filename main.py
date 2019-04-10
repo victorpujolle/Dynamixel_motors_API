@@ -5,7 +5,7 @@ from DXSerialAPI import *
 from Arm import *
 
 from PyQt5 import QtWidgets,QtCore
-from control_interface import Application
+from robot_setting_interface import Application
 
 
 if __name__ == '__main__':
