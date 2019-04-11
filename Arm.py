@@ -198,6 +198,7 @@ class Arm(DXSerialAPI):
         This function sets the position of all the joints
         :param angles: the goal position (degree units)
         """
+        print(angles)
         if len(angles) != self.joint_number:
             raise ValueError('The length of the input angles : the input list has a length of {} and  this length should be the number of joint {} '.format(len(angles),self.joint_number))
 

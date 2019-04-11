@@ -53,9 +53,9 @@ class Application(QtWidgets.QWidget):
         self.MenuLayout.setContentsMargins(0, 0, 0, 0)
 
         # set Geometry
-        self.setGeometry(0, 0, 900, 600)
-        self.FigureWidget.setGeometry(400, 0, 700, 600)
-        self.MenuWidget.setGeometry(0, 0, 200, 600)
+        self.setGeometry(0, 0, 1100, 600)
+        self.FigureWidget.setGeometry(600, 0, 700, 600)
+        self.MenuWidget.setGeometry(0, 0, 400, 600)
 
         return 0
 
@@ -96,13 +96,8 @@ class Application(QtWidgets.QWidget):
         # Create the label objects
 
         self.inputlabel = QtWidgets.QLabel(self)
-        self.outputlabel = QtWidgets.QLabel(self)
         self.robotpos_label = QtWidgets.QLabel(self)
-
-
-        self.xlabel = QtWidgets.QLabel(self)
-        self.ylabel = QtWidgets.QLabel(self)
-        self.zlabel = QtWidgets.QLabel(self)
+        self.robotmove_label = QtWidgets.QLabel(self)
 
         self.th0label = QtWidgets.QLabel(self)
         self.th1label = QtWidgets.QLabel(self)
@@ -111,70 +106,69 @@ class Application(QtWidgets.QWidget):
         self.th4label = QtWidgets.QLabel(self)
         self.th5label = QtWidgets.QLabel(self)
 
-        self.deg0label = QtWidgets.QLabel(self)
-        self.deg1label = QtWidgets.QLabel(self)
-        self.deg2label = QtWidgets.QLabel(self)
-        self.deg3label = QtWidgets.QLabel(self)
-        self.deg4label = QtWidgets.QLabel(self)
-        self.deg5label = QtWidgets.QLabel(self)
 
         # Create the textbox objects
-        self.xtextbox = QtWidgets.QLineEdit(self)
-        self.ytextbox = QtWidgets.QLineEdit(self)
-        self.ztextbox = QtWidgets.QLineEdit(self)
 
-        self.deg0textbox = QtWidgets.QLineEdit(self)
-        self.deg1textbox = QtWidgets.QLineEdit(self)
-        self.deg2textbox = QtWidgets.QLineEdit(self)
-        self.deg3textbox = QtWidgets.QLineEdit(self)
-        self.deg4textbox = QtWidgets.QLineEdit(self)
-        self.deg5textbox = QtWidgets.QLineEdit(self)
+        self.simu0_textbox = QtWidgets.QLineEdit(self)
+        self.simu1_textbox = QtWidgets.QLineEdit(self)
+        self.simu2_textbox = QtWidgets.QLineEdit(self)
+        self.simu3_textbox = QtWidgets.QLineEdit(self)
+        self.simu4_textbox = QtWidgets.QLineEdit(self)
+        self.simu5_textbox = QtWidgets.QLineEdit(self)
 
-        self.throbot0textbox = QtWidgets.QLineEdit(self)
-        self.throbot1textbox = QtWidgets.QLineEdit(self)
-        self.throbot2textbox = QtWidgets.QLineEdit(self)
-        self.throbot3textbox = QtWidgets.QLineEdit(self)
-        self.throbot4textbox = QtWidgets.QLineEdit(self)
-        self.throbot5textbox = QtWidgets.QLineEdit(self)
+        self.robotread0_textbox = QtWidgets.QLineEdit(self)
+        self.robotread1_textbox = QtWidgets.QLineEdit(self)
+        self.robotread2_textbox = QtWidgets.QLineEdit(self)
+        self.robotread3_textbox = QtWidgets.QLineEdit(self)
+        self.robotread4_textbox = QtWidgets.QLineEdit(self)
+        self.robotread5_textbox = QtWidgets.QLineEdit(self)
+
+        self.robotmove0_textbox = QtWidgets.QLineEdit(self)
+        self.robotmove1_textbox = QtWidgets.QLineEdit(self)
+        self.robotmove2_textbox = QtWidgets.QLineEdit(self)
+        self.robotmove3_textbox = QtWidgets.QLineEdit(self)
+        self.robotmove4_textbox = QtWidgets.QLineEdit(self)
+        self.robotmove5_textbox = QtWidgets.QLineEdit(self)
+
 
         # Create the button objects
         self.drowbutton = QtWidgets.QPushButton('draw', self)
         self.readposbutton = QtWidgets.QPushButton('read', self)
         self.movebutton = QtWidgets.QPushButton('move', self)
+        self.transfertbutton = QtWidgets.QPushButton('=>', self)
 
         # Resize text box
+        self.simu0_textbox.resize(100, 20)
+        self.simu1_textbox.resize(100, 20)
+        self.simu2_textbox.resize(100, 20)
+        self.simu3_textbox.resize(100, 20)
+        self.simu4_textbox.resize(100, 20)
+        self.simu5_textbox.resize(100, 20)
 
-        self.xtextbox.resize(100, 20)
-        self.ytextbox.resize(100, 20)
-        self.ztextbox.resize(100, 20)
+        self.robotread0_textbox.resize(100, 20)
+        self.robotread1_textbox.resize(100, 20)
+        self.robotread2_textbox.resize(100, 20)
+        self.robotread3_textbox.resize(100, 20)
+        self.robotread4_textbox.resize(100, 20)
+        self.robotread5_textbox.resize(100, 20)
 
-        self.deg0textbox.resize(100, 20)
-        self.deg1textbox.resize(100, 20)
-        self.deg2textbox.resize(100, 20)
-        self.deg3textbox.resize(100, 20)
-        self.deg4textbox.resize(100, 20)
-        self.deg5textbox.resize(100, 20)
-
-        self.throbot0textbox.resize(100, 20)
-        self.throbot1textbox.resize(100, 20)
-        self.throbot2textbox.resize(100, 20)
-        self.throbot3textbox.resize(100, 20)
-        self.throbot4textbox.resize(100, 20)
-        self.throbot5textbox.resize(100, 20)
+        self.robotmove0_textbox.resize(100, 20)
+        self.robotmove1_textbox.resize(100, 20)
+        self.robotmove2_textbox.resize(100, 20)
+        self.robotmove3_textbox.resize(100, 20)
+        self.robotmove4_textbox.resize(100, 20)
+        self.robotmove5_textbox.resize(100, 20)
 
         # set the size of the button object
         self.drowbutton.resize(100, 30)
         self.readposbutton.resize(100, 30)
-        self.movebutton.resize(100,30)
+        self.movebutton.resize(100, 30)
+        self.transfertbutton.resize(50, 30)
 
         # set the name of each label
         self.inputlabel.setText('INPUT SIMULATION')
-        self.outputlabel.setText('OUTPUT SIMULATION')
         self.robotpos_label.setText('ROBOT POSITION')
-
-        self.xlabel.setText('x :')
-        self.ylabel.setText('y :')
-        self.zlabel.setText('z :')
+        self.robotmove_label.setText('ROBOT ORDER')
 
         self.th0label.setText('th0 :')
         self.th1label.setText('th1 :')
@@ -182,13 +176,6 @@ class Application(QtWidgets.QWidget):
         self.th3label.setText('th3 :')
         self.th4label.setText('th4 :')
         self.th5label.setText('th5 :')
-
-        self.deg0label.setText('[deg]')
-        self.deg1label.setText('[deg]')
-        self.deg2label.setText('[deg]')
-        self.deg3label.setText('[deg]')
-        self.deg4label.setText('[deg]')
-        self.deg5label.setText('[deg]')
 
         # set the location of each labels
 
@@ -202,75 +189,65 @@ class Application(QtWidgets.QWidget):
         self.th4label.move(15, 30 + 4*30)
         self.th5label.move(15, 30 + 5*30)
 
-        self.deg0textbox.move(15 + 35, 30)
-        self.deg1textbox.move(15 + 35, 30 +   30)
-        self.deg2textbox.move(15 + 35, 30 + 2*30)
-        self.deg3textbox.move(15 + 35, 30 + 3*30)
-        self.deg4textbox.move(15 + 35, 30 + 4*30)
-        self.deg5textbox.move(15 + 35, 30 + 5*30)
+        self.simu0_textbox.move(15 + 35, 30)
+        self.simu1_textbox.move(15 + 35, 30 +   30)
+        self.simu2_textbox.move(15 + 35, 30 + 2*30)
+        self.simu3_textbox.move(15 + 35, 30 + 3*30)
+        self.simu4_textbox.move(15 + 35, 30 + 4*30)
+        self.simu5_textbox.move(15 + 35, 30 + 5*30)
 
-        self.deg0label.move(200 + 100, 30)
-        self.deg1label.move(200 + 100, 30 +   30)
-        self.deg2label.move(200 + 100, 30 + 2*30)
-        self.deg3label.move(200 + 100, 30 + 3*30)
-        self.deg4label.move(200 + 100, 30 + 4*30)
-        self.deg5label.move(200 + 100, 30 + 5*30)
+        self.robotread0_textbox.move(360, 30)
+        self.robotread1_textbox.move(360, 30 +   30)
+        self.robotread2_textbox.move(360, 30 + 2*30)
+        self.robotread3_textbox.move(360, 30 + 3*30)
+        self.robotread4_textbox.move(360, 30 + 4*30)
+        self.robotread5_textbox.move(360, 30 + 5*30)
 
-        self.throbot0textbox.move(200, 30)
-        self.throbot1textbox.move(200, 30 +   30)
-        self.throbot2textbox.move(200, 30 + 2*30)
-        self.throbot3textbox.move(200, 30 + 3*30)
-        self.throbot4textbox.move(200, 30 + 4*30)
-        self.throbot5textbox.move(200, 30 + 5*30)
+        self.robotmove_label.move(200,10)
 
-        self.robotpos_label.move(200, 10)
+        self.robotmove0_textbox.move(200, 30)
+        self.robotmove1_textbox.move(200, 30 +   30)
+        self.robotmove2_textbox.move(200, 30 + 2*30)
+        self.robotmove3_textbox.move(200, 30 + 3*30)
+        self.robotmove4_textbox.move(200, 30 + 4*30)
+        self.robotmove5_textbox.move(200, 30 + 5*30)
 
-        self.outputlabel.move(15, 230)
+        self.robotpos_label.move(360, 10)
 
-        self.xlabel.move(  15, 250)
-        self.ylabel.move(  15, 250 + 30)
-        self.zlabel.move(  15, 250 + 60)
-        self.xtextbox.move(15 + 35, 250)
-        self.ytextbox.move(15 + 35, 250 + 30)
-        self.ztextbox.move(15 + 35, 250 + 60)
 
-        self.drowbutton.move(15 + 35, 200 + 180)
-        self.readposbutton.move(200, 200 + 180)
-        self.movebutton.move(15 + 35, 380 + 50)
+
+        self.drowbutton.move(15 + 35, 220)
+        self.readposbutton.move(360, 220)
+        self.movebutton.move(200, 220)
+        self.transfertbutton.move(150,220)
 
         #connect the button to the click_action
-        self.drowbutton.clicked.connect(self.on_drow_click)
+        self.drowbutton.clicked.connect(self.on_draw_click)
         self.readposbutton.clicked.connect(self.on_readpos_click)
         self.movebutton.clicked.connect(self.on_move_click)
+        self.transfertbutton.clicked.connect(self.on_transfert_button)
 
         return 0
 
-    def on_drow_click(self):
+    def on_draw_click(self):
         """
         method linked to the button draw
         """
         print('--- EVENT : DRAW CLICK ---')
-        q_deg = np.array(self.get_input()).astype(float)
+        q_deg = np.array(self.get_simu_input()).astype(float)
         q_rad = deg2rad(q_deg)
         print('q [deg] :', q_deg)
         print('q [rad] :', q_rad)
-        if not self.check_input(q_rad):
-            # no valid input
-            return 1
-        else:
-            # valid input
 
-            # figure and UI control
-            R,t = self.arm.kinematic.compute_FK(q_rad) # compute the total kinematics
-            self.set_output([t[0], t[1], t[2]]) # set the output
+        # figure and UI control
+        R,t = self.arm.kinematic.compute_FK(q_rad) # compute the total kinematics
 
-            x, y, z = self.arm.kinematic.compute_pose(q_rad)  # compute all partial kinematics
-            #list_vector_frame, list_origin_frame = self.arm.kinematic.compute_ref(q)  # compute all the local ref
+        x, y, z = self.arm.kinematic.compute_pose(q_rad)  # compute all partial kinematic
 
-            self.clear_figure() # clear figure
-            self.draw_arm([x, y, z]) # draw the arm
-            #self.draw_ref(list_vector_frame, list_origin_frame)
-            self.FigureCanvas.draw()
+        self.clear_figure() # clear figure
+        self.draw_arm([x, y, z]) # draw the arm
+        #self.draw_ref(list_vector_frame, list_origin_frame)
+        self.FigureCanvas.draw()
 
         return 0
 
@@ -283,12 +260,12 @@ class Application(QtWidgets.QWidget):
         pos = self.arm.joint_angles
         print(pos)
 
-        self.throbot0textbox.setText('{:6.2f}'.format(pos[0]))
-        self.throbot1textbox.setText('{:6.2f}'.format(pos[1]))
-        self.throbot2textbox.setText('{:6.2f}'.format(pos[2]))
-        self.throbot3textbox.setText('{:6.2f}'.format(pos[3]))
-        self.throbot4textbox.setText('{:6.2f}'.format(pos[4]))
-        self.throbot5textbox.setText('{:6.2f}'.format(pos[5]))
+        self.robotread0_textbox.setText('{:6.2f}'.format(pos[0]))
+        self.robotread1_textbox.setText('{:6.2f}'.format(pos[1]))
+        self.robotread2_textbox.setText('{:6.2f}'.format(pos[2]))
+        self.robotread3_textbox.setText('{:6.2f}'.format(pos[3]))
+        self.robotread4_textbox.setText('{:6.2f}'.format(pos[4]))
+        self.robotread5_textbox.setText('{:6.2f}'.format(pos[5]))
 
         return 0
 
@@ -297,70 +274,90 @@ class Application(QtWidgets.QWidget):
         method linked to the button move
         """
         print('--- EVENT : MOVE CLICK ---')
+        X = np.array(self.get_move_input())
+        print('move input : ', X)
 
-    def get_input(self):
+    def on_transfert_button(self):
+        """
+        method linked to the button transfert
+        """
+        print('--- EVENT : TRANSFERT CLICK ---')
+        X = np.array(self.get_simu_input()).astype(float)
+        print(X)
+        self.set_move_input(X)
+
+    def get_simu_input(self):
         """
         getter of the input values
         :return: return the input values
         """
-        th0 = self.deg0textbox.text()
-        th1 = self.deg1textbox.text()
-        th2 = self.deg2textbox.text()
-        th3 = self.deg3textbox.text()
-        th4 = self.deg4textbox.text()
-        th5 = self.deg5textbox.text()
+        th0 = self.simu0_textbox.text()
+        th1 = self.simu1_textbox.text()
+        th2 = self.simu2_textbox.text()
+        th3 = self.simu3_textbox.text()
+        th4 = self.simu4_textbox.text()
+        th5 = self.simu5_textbox.text()
 
         if th0 == '':
             th0 = '0'
-            self.deg0textbox.setText('0')
+            self.simu0_textbox.setText('0')
 
         if th1 == '':
             th1 = '0'
-            self.deg1textbox.setText('0')
+            self.simu1_textbox.setText('0')
 
         if th2 == '':
             th2 = '0'
-            self.deg2textbox.setText('0')
+            self.simu2_textbox.setText('0')
 
         if th3 == '':
             th3 = '0'
-            self.deg3textbox.setText('0')
+            self.simu3_textbox.setText('0')
 
         if th4 == '':
             th4 = '0'
-            self.deg4textbox.setText('0')
+            self.simu4_textbox.setText('0')
 
         if th5 == '':
             th5 = '0'
-            self.deg5textbox.setText('0')
+            self.simu5_textbox.setText('0')
 
 
         return th0, th1, th2, th3, th4, th5
 
-    def check_input(self, q):
+    def get_move_input(self):
         """
-        this method check if the input are allowed
-        :return: true or false depend of the input
+        getter of the input values
+        :return: return the input values
         """
-        ANGLE_LIMIT_INF = self.arm.ANGLE_LIMIT_INF
-        ANGLE_LIMIT_SUP = self.arm.ANGLE_LIMIT_SUP
+        th0 = self.robotmove0_textbox.text()
+        th1 = self.robotmove1_textbox.text()
+        th2 = self.robotmove2_textbox.text()
+        th3 = self.robotmove3_textbox.text()
+        th4 = self.robotmove4_textbox.text()
+        th5 = self.robotmove5_textbox.text()
 
-        for i in range(len(q)):
-            if q[i] < ANGLE_LIMIT_INF[i] or q[i] > ANGLE_LIMIT_SUP[i]:
-                print('theta {} is not is the acceptable range {} given, range : [{} {}]'.format(i,q[i],ANGLE_LIMIT_INF[i],ANGLE_LIMIT_SUP[i]))
-                return False
-
-        return True
-
-    def set_output(self, X):
+        if th0 != '': th0 = float(th0)
+        if th1 != '': th1 = float(th1)
+        if th2 != '': th2 = float(th2)
+        if th3 != '': th3 = float(th3)
+        if th4 != '': th4 = float(th4)
+        if th5 != '': th5 = float(th5)
+        return th0, th1, th2, th3, th4, th5
+    
+    def set_move_input(self,X):
         """
-        method to set the output text box
-        :param X: list [x,y,z]
+        method read the postion of the robot and set the textboxes
         """
 
-        self.xtextbox.setText('{:6.2f}'.format(X[0]))
-        self.ytextbox.setText('{:6.2f}'.format(X[1]))
-        self.ztextbox.setText('{:6.2f}'.format(X[2]))
+        self.robotmove0_textbox.setText('{}'.format(X[0]))
+        self.robotmove1_textbox.setText('{}'.format(X[1]))
+        self.robotmove2_textbox.setText('{}'.format(X[2]))
+        self.robotmove3_textbox.setText('{}'.format(X[3]))
+        self.robotmove4_textbox.setText('{}'.format(X[4]))
+        self.robotmove5_textbox.setText('{}'.format(X[5]))
+
+        return 0
 
     def clear_figure(self):
         """
@@ -390,25 +387,3 @@ class Application(QtWidgets.QWidget):
         self.axis.scatter(x, y, z, linewidth=3.0)
 
         return 0
-
-    def draw_ref(self, list_vector_frame, list_origin_frame):
-        """
-        draw on the figure a local reference frame
-        :param list_vector_frame: list of reference frame rotated
-        :param list_origin_frame: list of origin points for each frame
-        """
-        # scale calculation, it is better if all the scales are the same
-        scale_x = (self.axis_xlim3d[1] - self.axis_xlim3d[0]) * 0.1
-        scale_y = (self.axis_ylim3d[1] - self.axis_ylim3d[0]) * 0.1
-        scale_z = (self.axis_zlim3d[1] - self.axis_zlim3d[0]) * 0.1
-
-        for i in range(len(list_origin_frame)):
-
-            origin = list_origin_frame[i]
-            vectors = list_vector_frame[i]
-            x_vect = vectors[0] * scale_x
-            y_vect = vectors[1] * scale_y
-            z_vect = vectors[2] * scale_z
-            ref_to_plot = np.array([origin, origin + x_vect, origin, origin + y_vect, origin, origin + z_vect,]).T
-            self.axis.plot(ref_to_plot[0], ref_to_plot[1], ref_to_plot[2], color='grey', linewidth = 2.0)
-
