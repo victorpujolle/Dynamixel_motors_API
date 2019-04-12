@@ -135,7 +135,8 @@ class Application(QtWidgets.QWidget):
         self.drowbutton = QtWidgets.QPushButton('draw', self)
         self.readposbutton = QtWidgets.QPushButton('read', self)
         self.movebutton = QtWidgets.QPushButton('move', self)
-        self.transfertbutton = QtWidgets.QPushButton('=>', self)
+        self.transfertbutton_right = QtWidgets.QPushButton('=>', self)
+        self.transfertbutton_left = QtWidgets.QPushButton('<=', self)
 
         # Resize text box
         self.simu0_textbox.resize(100, 20)
@@ -163,7 +164,8 @@ class Application(QtWidgets.QWidget):
         self.drowbutton.resize(100, 30)
         self.readposbutton.resize(100, 30)
         self.movebutton.resize(100, 30)
-        self.transfertbutton.resize(50, 30)
+        self.transfertbutton_right.resize(50, 30)
+        self.transfertbutton_left.resize(50, 30)
 
         # set the name of each label
         self.inputlabel.setText('INPUT SIMULATION')
@@ -219,13 +221,15 @@ class Application(QtWidgets.QWidget):
         self.drowbutton.move(15 + 35, 220)
         self.readposbutton.move(360, 220)
         self.movebutton.move(200, 220)
-        self.transfertbutton.move(150,220)
+        self.transfertbutton_right.move(150, 220)
+        self.transfertbutton_left.move(150, 250)
 
         #connect the button to the click_action
         self.drowbutton.clicked.connect(self.on_draw_click)
         self.readposbutton.clicked.connect(self.on_readpos_click)
         self.movebutton.clicked.connect(self.on_move_click)
-        self.transfertbutton.clicked.connect(self.on_transfert_button)
+        self.transfertbutton_right.clicked.connect(self.on_transfert_button_right)
+        self.transfertbutton_left.clicked.connect(self.on_transfert_button_left)
 
         return 0
 
@@ -274,17 +278,34 @@ class Application(QtWidgets.QWidget):
         method linked to the button move
         """
         print('--- EVENT : MOVE CLICK ---')
-        X = np.array(self.get_move_input())
-        print('move input : ', X)
+        th0, th1, th2, th3, th4, th5 = self.get_move_input()
+        X = [th0, th1, th2, th3, th4, th5]
+        angles = [float(X[i]) if (X[i] != '' ) else X[i] for i in range(len(X))]
+        self.arm.set_arm_position(angles)
+        return 0
 
-    def on_transfert_button(self):
+    def on_transfert_button_right(self):
         """
-        method linked to the button transfert
+        method linked to the button transfert =>
         """
-        print('--- EVENT : TRANSFERT CLICK ---')
-        X = np.array(self.get_simu_input()).astype(float)
-        print(X)
-        self.set_move_input(X)
+        print('--- EVENT : TRANSFERT => CLICK ---')
+        th0, th1, th2, th3, th4, th5 = self.get_simu_input()
+        angles = [th0, th1, th2, th3, th4, th5]
+        print(angles)
+        self.set_move_input(angles)
+        return 0
+
+    def on_transfert_button_left(self):
+        """
+        method linked to the button transfert <=
+        """
+        print('--- EVENT : TRANSFERT <= CLICK ---')
+        th0, th1, th2, th3, th4, th5 = self.get_move_input()
+        angles = [th0, th1, th2, th3, th4, th5]
+        print(angles)
+        self.set_simu_input(angles)
+        return 0
+
 
     def get_simu_input(self):
         """
@@ -337,12 +358,6 @@ class Application(QtWidgets.QWidget):
         th4 = self.robotmove4_textbox.text()
         th5 = self.robotmove5_textbox.text()
 
-        if th0 != '': th0 = float(th0)
-        if th1 != '': th1 = float(th1)
-        if th2 != '': th2 = float(th2)
-        if th3 != '': th3 = float(th3)
-        if th4 != '': th4 = float(th4)
-        if th5 != '': th5 = float(th5)
         return th0, th1, th2, th3, th4, th5
     
     def set_move_input(self,X):
@@ -350,12 +365,26 @@ class Application(QtWidgets.QWidget):
         method read the postion of the robot and set the textboxes
         """
 
-        self.robotmove0_textbox.setText('{}'.format(X[0]))
-        self.robotmove1_textbox.setText('{}'.format(X[1]))
-        self.robotmove2_textbox.setText('{}'.format(X[2]))
-        self.robotmove3_textbox.setText('{}'.format(X[3]))
-        self.robotmove4_textbox.setText('{}'.format(X[4]))
-        self.robotmove5_textbox.setText('{}'.format(X[5]))
+        self.robotmove0_textbox.setText(X[0])
+        self.robotmove1_textbox.setText(X[1])
+        self.robotmove2_textbox.setText(X[2])
+        self.robotmove3_textbox.setText(X[3])
+        self.robotmove4_textbox.setText(X[4])
+        self.robotmove5_textbox.setText(X[5])
+
+        return 0
+
+    def set_simu_input(self,X):
+        """
+        method read the postion of the robot and set the textboxes
+        """
+
+        self.simu0_textbox.setText(X[0])
+        self.simu1_textbox.setText(X[1])
+        self.simu2_textbox.setText(X[2])
+        self.simu3_textbox.setText(X[3])
+        self.simu4_textbox.setText(X[4])
+        self.simu5_textbox.setText(X[5])
 
         return 0
 
