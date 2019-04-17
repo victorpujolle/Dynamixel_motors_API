@@ -5,7 +5,8 @@ from DXSerialAPI import *
 from Arm import *
 
 from PyQt5 import QtWidgets,QtCore
-from robot_setting_interface import Application
+from robot_setting_interface import robot_setting_interface
+from robot_IK_interface import robot_IK_interface
 
 
 if __name__ == '__main__':
@@ -13,7 +14,8 @@ if __name__ == '__main__':
     #----------------------------------- SERIAL PARAMETERS SETTING -----------------------------------
     # Creation of the motor API class (here only the definition of the parent attributes)
     # open COM3, baudrate 1000000
-    PORT_NAME = 'COM3'
+    #PORT_NAME = 'COM3'
+    PORT_NAME = None
     BAUDRATE = 1000000
     TIME_OUT = 0.05
     #motorsAPI = DXSerialAPI(PORT_NAME, BAUDRATE, TIMEOUT=TIME_OUT)
@@ -31,7 +33,7 @@ if __name__ == '__main__':
 
     # UI
     QApp = QtWidgets.QApplication(sys.argv)
-    app = Application(ArmAPI)
+    app = robot_IK_interface(ArmAPI)
     app.show()
     sys.exit(QApp.exec_())
 

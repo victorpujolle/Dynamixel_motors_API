@@ -1,9 +1,9 @@
 import numpy as np
 
 
-class Generator():
+class FK_Generator():
     """
-    This class is used for all kinematics calculation of the arm
+    This class is used for all formward kinematics calculation of the arm
     """
 
     def __init__(self, L, OFFSET, ORIGIN_TRANS, Q_MIN, Q_MAX):
@@ -307,5 +307,16 @@ class Generator():
         return list_vector_frame, list_origin_frame
 
 
+class IK_Generator(FK_Generator):
+    """
+    This class is used for all inverse kinematics calculation of the arm
+    It inherites from the forward generator class
+    """
+    def __init__(self, L, OFFSET, ORIGIN_TRANS, Q_MIN, Q_MAX):
+
+        # super init
+        super(IK_Generator, self).__init__(L, OFFSET, ORIGIN_TRANS, Q_MIN, Q_MAX)
+
+        
 
 

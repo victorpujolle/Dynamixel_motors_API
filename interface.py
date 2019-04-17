@@ -9,7 +9,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 #from mymodules import fk_module
 #from mymodules import Closed_form_ik
-from kinematic_generator import Generator
+from kinematic_generator import FK_Generator
 
 import glob
 import socket

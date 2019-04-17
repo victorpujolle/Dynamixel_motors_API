@@ -2,7 +2,7 @@ import time
 
 from DXSerialAPI import DXSerialAPI
 from utils import *
-from kinematic_generator import Generator
+from kinematic_generator import FK_Generator, IK_Generator
 
 from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
@@ -46,8 +46,8 @@ class Arm(DXSerialAPI):
         self.joint_position = np.zeros((self.joint_number)) # position of each joint
 
         # variables used for kinematics computation
-        self.kinematic = Generator(self.LINKS_LENGTH, self.ANGLE_OFFSET, self.TRANS_ORIGIN, self.ANGLE_LIMIT_INF, self.ANGLE_LIMIT_SUP)
-
+        self.FK = FK_Generator(self.LINKS_LENGTH, self.ANGLE_OFFSET, self.TRANS_ORIGIN, self.ANGLE_LIMIT_INF, self.ANGLE_LIMIT_SUP)
+        self.IK = IK_Generator(self.LINKS_LENGTH, self.ANGLE_OFFSET, self.TRANS_ORIGIN, self.ANGLE_LIMIT_INF, self.ANGLE_LIMIT_SUP)
 
 
     # ------------- READING -------------
@@ -210,55 +210,6 @@ class Arm(DXSerialAPI):
         self.flag_is_position_init = True # the position is now setted
 
         return 0
-
-    def test_angle_limits(self):
-        """
-        this function will move each joints of the robot, one by one, from the min angle to the max angle
-        """
-
-        def move_joint_from_min_to_max(joint_id, min, max):
-            self.write_single_joint_position(joint_id,min)
-            time.sleep(3)
-            self.write_single_joint_position(joint_id, max)
-            time.sleep(3)
-            self.write_single_joint_position(joint_id, self.ANGLES_INIT[joint_id])
-            time.sleep(1)
-
-
-        min0 = self.motors_angle_limits_byte[0][0] * self.ANGLE_UNIT
-        max0 = self.motors_angle_limits_byte[0][1] * self.ANGLE_UNIT
-        print(min0,max0)
-        move_joint_from_min_to_max(0,min0,max0)
-
-        #min1 = self.motors_angle_limits_byte[1][0] * self.ANGLE_UNIT
-        #max1 = self.motors_angle_limits_byte[1][1] * self.ANGLE_UNIT
-        #print(min1, max1)
-        #move_joint_from_min_to_max(1, min1, max1)
-
-        min2 = self.motors_angle_limits_byte[2][0] * self.ANGLE_UNIT
-        max2 = self.motors_angle_limits_byte[2][1] * self.ANGLE_UNIT
-        print(min2, max2)
-        move_joint_from_min_to_max(2, min2, max2)
-
-        min3 = self.motors_angle_limits_byte[3][0] * self.ANGLE_UNIT
-        max3 = self.motors_angle_limits_byte[3][1] * self.ANGLE_UNIT
-        print(min3, max3)
-        move_joint_from_min_to_max(3, min3, max3)
-
-        min4 = self.motors_angle_limits_byte[4][0] * self.ANGLE_UNIT
-        max4 = self.motors_angle_limits_byte[4][1] * self.ANGLE_UNIT
-        print(min4, max4)
-        move_joint_from_min_to_max(4, min4, max4)
-
-        min5 = self.motors_angle_limits_byte[5][0] * self.ANGLE_UNIT
-        max5 = self.motors_angle_limits_byte[5][1] * self.ANGLE_UNIT
-        print(min5, max5)
-        move_joint_from_min_to_max(5, min5, max5)
-
-        min6 = self.motors_angle_limits_byte[6][0] * self.ANGLE_UNIT
-        max6 = self.motors_angle_limits_byte[6][1] * self.ANGLE_UNIT
-        print(min6, max6)
-        move_joint_from_min_to_max(6, min6, max6)
 
 
 

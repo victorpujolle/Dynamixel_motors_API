@@ -4,7 +4,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from PyQt5 import QtWidgets,QtCore
+from PyQt5 import QtWidgets, QtCore
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from Arm import Arm
@@ -16,21 +16,22 @@ import socket
 import math
 
 
-class robot_setting_interface(QtWidgets.QWidget):
+class robot_IK_interface(QtWidgets.QWidget):
     """
-    The goal of this interface is the control of the robot
+    The goal of this interface is the simulation of the IK
+    Element of this interface will be incorporate later in an other interface for robot control
     """
 
 
-    def __init__(self,arm):
+    def __init__(self, arm):
 
         # super init
-        super(robot_setting_interface, self).__init__()
+        super(robot_IK_interface, self).__init__()
 
         # link to the arm
         self.arm = arm
 
-        #init UI
+        # init UI
         self.init_UI()
 
         # init figure
@@ -39,7 +40,7 @@ class robot_setting_interface(QtWidgets.QWidget):
         # init menu
         self.init_menu()
 
-    #------INIT FUNCTIONS-----
+    # ------INIT FUNCTIONS-----
 
     def init_UI(self):
         """
@@ -59,9 +60,9 @@ class robot_setting_interface(QtWidgets.QWidget):
         self.MenuLayout.setContentsMargins(0, 0, 0, 0)
 
         # set Geometry
-        self.setGeometry(0, 0, 1100, 600)
-        self.FigureWidget.setGeometry(600, 0, 700, 600)
-        self.MenuWidget.setGeometry(0, 0, 400, 600)
+        self.setGeometry(0, 0, 800, 600)
+        self.FigureWidget.setGeometry(400, 0, 700, 600)
+        self.MenuWidget.setGeometry(0, 0, 300, 600)
 
         return 0
 
@@ -99,147 +100,123 @@ class robot_setting_interface(QtWidgets.QWidget):
         """
         Initialisation of the menu
         """
-        # Create the label objects
+        # create label
+        self.label_input= QtWidgets.QLabel(self)
+        self.label_output = QtWidgets.QLabel(self)
 
-        self.inputlabel = QtWidgets.QLabel(self)
-        self.robotpos_label = QtWidgets.QLabel(self)
-        self.robotmove_label = QtWidgets.QLabel(self)
+        self.label_X  = QtWidgets.QLabel(self)
+        self.label_Y  = QtWidgets.QLabel(self)
+        self.label_Z  = QtWidgets.QLabel(self)
+        self.label_aX = QtWidgets.QLabel(self)
+        self.label_aY = QtWidgets.QLabel(self)
+        self.label_aZ = QtWidgets.QLabel(self)
 
-        self.th0label = QtWidgets.QLabel(self)
-        self.th1label = QtWidgets.QLabel(self)
-        self.th2label = QtWidgets.QLabel(self)
-        self.th3label = QtWidgets.QLabel(self)
-        self.th4label = QtWidgets.QLabel(self)
-        self.th5label = QtWidgets.QLabel(self)
+        self.label_q0 = QtWidgets.QLabel(self)
+        self.label_q1 = QtWidgets.QLabel(self)
+        self.label_q2 = QtWidgets.QLabel(self)
+        self.label_q3 = QtWidgets.QLabel(self)
+        self.label_q4 = QtWidgets.QLabel(self)
+        self.label_q5 = QtWidgets.QLabel(self)
 
+        # create textbox
+        self.textbox_input_X  = QtWidgets.QLineEdit(self)
+        self.textbox_input_Y  = QtWidgets.QLineEdit(self)
+        self.textbox_input_Z  = QtWidgets.QLineEdit(self)
+        self.textbox_input_aX = QtWidgets.QLineEdit(self)
+        self.textbox_input_aY = QtWidgets.QLineEdit(self)
+        self.textbox_input_aZ = QtWidgets.QLineEdit(self)
 
-        # Create the textbox objects
+        self.textbox_output_q0 = QtWidgets.QLineEdit(self)
+        self.textbox_output_q1 = QtWidgets.QLineEdit(self)
+        self.textbox_output_q2 = QtWidgets.QLineEdit(self)
+        self.textbox_output_q3 = QtWidgets.QLineEdit(self)
+        self.textbox_output_q4 = QtWidgets.QLineEdit(self)
+        self.textbox_output_q5 = QtWidgets.QLineEdit(self)
 
-        self.simu0_textbox = QtWidgets.QLineEdit(self)
-        self.simu1_textbox = QtWidgets.QLineEdit(self)
-        self.simu2_textbox = QtWidgets.QLineEdit(self)
-        self.simu3_textbox = QtWidgets.QLineEdit(self)
-        self.simu4_textbox = QtWidgets.QLineEdit(self)
-        self.simu5_textbox = QtWidgets.QLineEdit(self)
+        # create button
+        self.button_calculate = QtWidgets.QPushButton('calculate', self)
+        self.button_draw_goal = QtWidgets.QPushButton('draw', self)
+        self.button_draw = QtWidgets.QPushButton('draw', self)
 
-        self.robotread0_textbox = QtWidgets.QLineEdit(self)
-        self.robotread1_textbox = QtWidgets.QLineEdit(self)
-        self.robotread2_textbox = QtWidgets.QLineEdit(self)
-        self.robotread3_textbox = QtWidgets.QLineEdit(self)
-        self.robotread4_textbox = QtWidgets.QLineEdit(self)
-        self.robotread5_textbox = QtWidgets.QLineEdit(self)
+        # resize button and textbox
+        self.textbox_input_X.resize(100,20)
+        self.textbox_input_Y.resize(100,20)
+        self.textbox_input_Z.resize(100,20)
+        self.textbox_input_aX.resize(100,20)
+        self.textbox_input_aY.resize(100,20)
+        self.textbox_input_aZ.resize(100,20)
 
-        self.robotmove0_textbox = QtWidgets.QLineEdit(self)
-        self.robotmove1_textbox = QtWidgets.QLineEdit(self)
-        self.robotmove2_textbox = QtWidgets.QLineEdit(self)
-        self.robotmove3_textbox = QtWidgets.QLineEdit(self)
-        self.robotmove4_textbox = QtWidgets.QLineEdit(self)
-        self.robotmove5_textbox = QtWidgets.QLineEdit(self)
+        self.textbox_output_q0.resize(100,20)
+        self.textbox_output_q1.resize(100,20)
+        self.textbox_output_q2.resize(100,20)
+        self.textbox_output_q3.resize(100,20)
+        self.textbox_output_q4.resize(100,20)
+        self.textbox_output_q5.resize(100,20)
 
-
-        # Create the button objects
-        self.drowbutton = QtWidgets.QPushButton('draw', self)
-        self.readposbutton = QtWidgets.QPushButton('read', self)
-        self.movebutton = QtWidgets.QPushButton('move', self)
-        self.transfertbutton_right = QtWidgets.QPushButton('=>', self)
-        self.transfertbutton_left = QtWidgets.QPushButton('<=', self)
-
-        # Resize text box
-        self.simu0_textbox.resize(100, 20)
-        self.simu1_textbox.resize(100, 20)
-        self.simu2_textbox.resize(100, 20)
-        self.simu3_textbox.resize(100, 20)
-        self.simu4_textbox.resize(100, 20)
-        self.simu5_textbox.resize(100, 20)
-
-        self.robotread0_textbox.resize(100, 20)
-        self.robotread1_textbox.resize(100, 20)
-        self.robotread2_textbox.resize(100, 20)
-        self.robotread3_textbox.resize(100, 20)
-        self.robotread4_textbox.resize(100, 20)
-        self.robotread5_textbox.resize(100, 20)
-
-        self.robotmove0_textbox.resize(100, 20)
-        self.robotmove1_textbox.resize(100, 20)
-        self.robotmove2_textbox.resize(100, 20)
-        self.robotmove3_textbox.resize(100, 20)
-        self.robotmove4_textbox.resize(100, 20)
-        self.robotmove5_textbox.resize(100, 20)
-
-        # set the size of the button object
-        self.drowbutton.resize(100, 30)
-        self.readposbutton.resize(100, 30)
-        self.movebutton.resize(100, 30)
-        self.transfertbutton_right.resize(50, 30)
-        self.transfertbutton_left.resize(50, 30)
-
-        # set the name of each label
-        self.inputlabel.setText('INPUT SIMULATION')
-        self.robotpos_label.setText('ROBOT POSITION')
-        self.robotmove_label.setText('ROBOT ORDER')
-
-        self.th0label.setText('th0 :')
-        self.th1label.setText('th1 :')
-        self.th2label.setText('th2 :')
-        self.th3label.setText('th3 :')
-        self.th4label.setText('th4 :')
-        self.th5label.setText('th5 :')
-
-        # set the location of each labels
+        self.button_calculate.resize(100,30)
+        self.button_draw_goal.resize(100,30)
+        self.button_draw.resize(100,30)
 
 
-        self.inputlabel.move(15, 10)
+        # set text of lables)
+        self.label_input.setText('INPUT')
+        self.label_output.setText('OUTPUT')
 
-        self.th0label.move(15, 30)
-        self.th1label.move(15, 30 +   30)
-        self.th2label.move(15, 30 + 2*30)
-        self.th3label.move(15, 30 + 3*30)
-        self.th4label.move(15, 30 + 4*30)
-        self.th5label.move(15, 30 + 5*30)
+        self.label_X.setText('X :')
+        self.label_Y.setText('Y :')
+        self.label_Z.setText('Z :')
+        self.label_aX.setText('aX :')
+        self.label_aY.setText('aY :')
+        self.label_aZ.setText('aZ :')
 
-        self.simu0_textbox.move(15 + 35, 30)
-        self.simu1_textbox.move(15 + 35, 30 +   30)
-        self.simu2_textbox.move(15 + 35, 30 + 2*30)
-        self.simu3_textbox.move(15 + 35, 30 + 3*30)
-        self.simu4_textbox.move(15 + 35, 30 + 4*30)
-        self.simu5_textbox.move(15 + 35, 30 + 5*30)
+        self.label_q0.setText('q0 :')
+        self.label_q1.setText('q1 :')
+        self.label_q2.setText('q2 :')
+        self.label_q3.setText('q3 :')
+        self.label_q4.setText('q4 :')
+        self.label_q5.setText('q5 :')
 
-        self.robotread0_textbox.move(360, 30)
-        self.robotread1_textbox.move(360, 30 +   30)
-        self.robotread2_textbox.move(360, 30 + 2*30)
-        self.robotread3_textbox.move(360, 30 + 3*30)
-        self.robotread4_textbox.move(360, 30 + 4*30)
-        self.robotread5_textbox.move(360, 30 + 5*30)
+        # set location of everythink
 
-        self.robotmove_label.move(200,10)
+        self.label_input.move(15+35, 10)
+        self.label_output.move(215+35,10)
 
-        self.robotmove0_textbox.move(200, 30)
-        self.robotmove1_textbox.move(200, 30 +   30)
-        self.robotmove2_textbox.move(200, 30 + 2*30)
-        self.robotmove3_textbox.move(200, 30 + 3*30)
-        self.robotmove4_textbox.move(200, 30 + 4*30)
-        self.robotmove5_textbox.move(200, 30 + 5*30)
+        self.label_X.move(15, 30)
+        self.label_Y.move(15, 30 + 30)
+        self.label_Z.move(15, 30 + 2 * 30)
+        self.label_aX.move(15, 30 + 3 * 30)
+        self.label_aY.move(15, 30 + 4 * 30)
+        self.label_aZ.move(15, 30 + 5 * 30)
 
-        self.robotpos_label.move(360, 10)
+        self.textbox_input_X.move(15 + 35, 30)
+        self.textbox_input_Y.move(15 + 35, 30 + 30)
+        self.textbox_input_Z.move(15 + 35, 30 + 2 * 30)
+        self.textbox_input_aX.move(15 + 35, 30 + 3 * 30)
+        self.textbox_input_aY.move(15 + 35, 30 + 4 * 30)
+        self.textbox_input_aZ.move(15 + 35, 30 + 5 * 30)
 
+        self.label_q0.move(215, 30)
+        self.label_q1.move(215, 30 + 30)
+        self.label_q2.move(215, 30 + 2 * 30)
+        self.label_q3.move(215, 30 + 3 * 30)
+        self.label_q4.move(215, 30 + 4 * 30)
+        self.label_q5.move(215, 30 + 5 * 30)
 
+        self.textbox_output_q0.move(215 + 35, 30)
+        self.textbox_output_q1.move(215 + 35, 30 + 30)
+        self.textbox_output_q2.move(215 + 35, 30 + 2 * 30)
+        self.textbox_output_q3.move(215 + 35, 30 + 3 * 30)
+        self.textbox_output_q4.move(215 + 35, 30 + 4 * 30)
+        self.textbox_output_q5.move(215 + 35, 30 + 5 * 30)
 
-        self.drowbutton.move(15 + 35, 220)
-        self.readposbutton.move(360, 220)
-        self.movebutton.move(200, 220)
-        self.transfertbutton_right.move(150, 220)
-        self.transfertbutton_left.move(150, 250)
+        self.button_calculate.move(150, 220)
+        self.button_draw_goal.move(15+35, 220)
+        self.button_draw.move(215+35, 220)
 
-        #connect the button to the click_action
-        self.drowbutton.clicked.connect(self.on_draw_click)
-        self.readposbutton.clicked.connect(self.on_readpos_click)
-        self.movebutton.clicked.connect(self.on_move_click)
-        self.transfertbutton_right.clicked.connect(self.on_transfert_button_right)
-        self.transfertbutton_left.clicked.connect(self.on_transfert_button_left)
 
         return 0
 
-    #-----BUTTON FUNCTIONS-----
+    # -----BUTTON FUNCTIONS-----
 
     def on_draw_click(self):
         """
@@ -252,13 +229,13 @@ class robot_setting_interface(QtWidgets.QWidget):
         print('q [rad] :', q_rad)
 
         # figure and UI control
-        R,t = self.arm.kinematic.compute_FK(q_rad) # compute the total kinematics
+        R, t = self.arm.kinematic.compute_FK(q_rad)  # compute the total kinematics
 
         x, y, z = self.arm.kinematic.compute_pose(q_rad)  # compute all partial kinematic
 
-        self.clear_figure() # clear figure
-        self.draw_arm([x, y, z]) # draw the arm
-        #self.draw_ref(list_vector_frame, list_origin_frame)
+        self.clear_figure()  # clear figure
+        self.draw_arm([x, y, z])  # draw the arm
+        # self.draw_ref(list_vector_frame, list_origin_frame)
         self.FigureCanvas.draw()
 
         return 0
@@ -288,7 +265,7 @@ class robot_setting_interface(QtWidgets.QWidget):
         print('--- EVENT : MOVE CLICK ---')
         th0, th1, th2, th3, th4, th5 = self.get_move_input()
         X = [th0, th1, th2, th3, th4, th5]
-        angles = [float(X[i]) if (X[i] != '' ) else X[i] for i in range(len(X))]
+        angles = [float(X[i]) if (X[i] != '') else X[i] for i in range(len(X))]
         self.arm.set_arm_position(angles)
         return 0
 
@@ -314,7 +291,7 @@ class robot_setting_interface(QtWidgets.QWidget):
         self.set_simu_input(angles)
         return 0
 
-    #-----GETTER AND SETTER-----
+    # -----GETTER AND SETTER-----
 
     def get_simu_input(self):
         """
@@ -352,7 +329,6 @@ class robot_setting_interface(QtWidgets.QWidget):
             th5 = '0'
             self.simu5_textbox.setText('0')
 
-
         return th0, th1, th2, th3, th4, th5
 
     def get_move_input(self):
@@ -368,8 +344,8 @@ class robot_setting_interface(QtWidgets.QWidget):
         th5 = self.robotmove5_textbox.text()
 
         return th0, th1, th2, th3, th4, th5
-    
-    def set_move_input(self,X):
+
+    def set_move_input(self, X):
         """
         method read the postion of the robot and set the textboxes
         """
@@ -383,7 +359,7 @@ class robot_setting_interface(QtWidgets.QWidget):
 
         return 0
 
-    def set_simu_input(self,X):
+    def set_simu_input(self, X):
         """
         method read the postion of the robot and set the textboxes
         """
@@ -397,7 +373,7 @@ class robot_setting_interface(QtWidgets.QWidget):
 
         return 0
 
-    #-----DRAWING FUNCTIONS-----
+    # -----DRAWING FUNCTIONS-----
 
     def clear_figure(self):
         """
@@ -423,7 +399,7 @@ class robot_setting_interface(QtWidgets.QWidget):
         """
         [x, y, z] = X
 
-        self.axis.plot(x, y, z, color='orange', linewidth = 3.0)
+        self.axis.plot(x, y, z, color='orange', linewidth=3.0)
         self.axis.scatter(x, y, z, linewidth=3.0)
 
         return 0
