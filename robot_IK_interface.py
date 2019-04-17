@@ -126,16 +126,16 @@ class robot_IK_interface(QtWidgets.QWidget):
         self.textbox_input_aY = QtWidgets.QLineEdit(self)
         self.textbox_input_aZ = QtWidgets.QLineEdit(self)
 
-        self.textbox_output_q0 = QtWidgets.QLineEdit(self)
-        self.textbox_output_q1 = QtWidgets.QLineEdit(self)
-        self.textbox_output_q2 = QtWidgets.QLineEdit(self)
-        self.textbox_output_q3 = QtWidgets.QLineEdit(self)
-        self.textbox_output_q4 = QtWidgets.QLineEdit(self)
-        self.textbox_output_q5 = QtWidgets.QLineEdit(self)
+        self.textbox_q0 = QtWidgets.QLineEdit(self)
+        self.textbox_q1 = QtWidgets.QLineEdit(self)
+        self.textbox_q2 = QtWidgets.QLineEdit(self)
+        self.textbox_q3 = QtWidgets.QLineEdit(self)
+        self.textbox_q4 = QtWidgets.QLineEdit(self)
+        self.textbox_q5 = QtWidgets.QLineEdit(self)
 
         # create button
         self.button_calculate = QtWidgets.QPushButton('calculate', self)
-        self.button_draw_goal = QtWidgets.QPushButton('draw', self)
+        self.button_draw_goal = QtWidgets.QPushButton('draw goal', self)
         self.button_draw = QtWidgets.QPushButton('draw', self)
 
         # resize button and textbox
@@ -146,12 +146,12 @@ class robot_IK_interface(QtWidgets.QWidget):
         self.textbox_input_aY.resize(100,20)
         self.textbox_input_aZ.resize(100,20)
 
-        self.textbox_output_q0.resize(100,20)
-        self.textbox_output_q1.resize(100,20)
-        self.textbox_output_q2.resize(100,20)
-        self.textbox_output_q3.resize(100,20)
-        self.textbox_output_q4.resize(100,20)
-        self.textbox_output_q5.resize(100,20)
+        self.textbox_q0.resize(100, 20)
+        self.textbox_q1.resize(100, 20)
+        self.textbox_q2.resize(100, 20)
+        self.textbox_q3.resize(100, 20)
+        self.textbox_q4.resize(100, 20)
+        self.textbox_q5.resize(100, 20)
 
         self.button_calculate.resize(100,30)
         self.button_draw_goal.resize(100,30)
@@ -202,36 +202,43 @@ class robot_IK_interface(QtWidgets.QWidget):
         self.label_q4.move(215, 30 + 4 * 30)
         self.label_q5.move(215, 30 + 5 * 30)
 
-        self.textbox_output_q0.move(215 + 35, 30)
-        self.textbox_output_q1.move(215 + 35, 30 + 30)
-        self.textbox_output_q2.move(215 + 35, 30 + 2 * 30)
-        self.textbox_output_q3.move(215 + 35, 30 + 3 * 30)
-        self.textbox_output_q4.move(215 + 35, 30 + 4 * 30)
-        self.textbox_output_q5.move(215 + 35, 30 + 5 * 30)
+        self.textbox_q0.move(215 + 35, 30)
+        self.textbox_q1.move(215 + 35, 30 + 30)
+        self.textbox_q2.move(215 + 35, 30 + 2 * 30)
+        self.textbox_q3.move(215 + 35, 30 + 3 * 30)
+        self.textbox_q4.move(215 + 35, 30 + 4 * 30)
+        self.textbox_q5.move(215 + 35, 30 + 5 * 30)
 
         self.button_calculate.move(150, 220)
         self.button_draw_goal.move(15+35, 220)
         self.button_draw.move(215+35, 220)
+
+        # link button to method
+        self.button_calculate.clicked.connect(self.on_click_calculate)
+        self.button_draw_goal.clicked.connect(self.on_click_draw_goal)
+        self.button_draw.clicked.connect(self.on_click_draw)
 
 
         return 0
 
     # -----BUTTON FUNCTIONS-----
 
-    def on_draw_click(self):
+    def on_click_calculate(self):
+        pass
+
+    def on_click_draw_goal(self):
+        pass
+
+    def on_click_draw(self):
         """
         method linked to the button draw
         """
-        print('--- EVENT : DRAW CLICK ---')
-        q_deg = np.array(self.get_simu_input()).astype(float)
+        print('--- EVENT : DRAW ARM CLICK ---')
+        q_deg = np.array(self.get_q_values()).astype(float)
         q_rad = deg2rad(q_deg)
-        print('q [deg] :', q_deg)
-        print('q [rad] :', q_rad)
-
+        print('REEEEE')
         # figure and UI control
-        R, t = self.arm.kinematic.compute_FK(q_rad)  # compute the total kinematics
-
-        x, y, z = self.arm.kinematic.compute_pose(q_rad)  # compute all partial kinematic
+        x, y, z = self.arm.IK_Generator.compute_pose(q_rad)  # compute all partial kinematic
 
         self.clear_figure()  # clear figure
         self.draw_arm([x, y, z])  # draw the arm
@@ -240,136 +247,50 @@ class robot_IK_interface(QtWidgets.QWidget):
 
         return 0
 
-    def on_readpos_click(self):
-        """
-        method read the postion of the robot and set the textboxes
-        """
-        print('--- EVENT : READ CLICK ---')
-        self.arm.read_arm_postion()
-        pos = self.arm.joint_angles
-        print(pos)
-
-        self.robotread0_textbox.setText('{:6.2f}'.format(pos[0]))
-        self.robotread1_textbox.setText('{:6.2f}'.format(pos[1]))
-        self.robotread2_textbox.setText('{:6.2f}'.format(pos[2]))
-        self.robotread3_textbox.setText('{:6.2f}'.format(pos[3]))
-        self.robotread4_textbox.setText('{:6.2f}'.format(pos[4]))
-        self.robotread5_textbox.setText('{:6.2f}'.format(pos[5]))
-
-        return 0
-
-    def on_move_click(self):
-        """
-        method linked to the button move
-        """
-        print('--- EVENT : MOVE CLICK ---')
-        th0, th1, th2, th3, th4, th5 = self.get_move_input()
-        X = [th0, th1, th2, th3, th4, th5]
-        angles = [float(X[i]) if (X[i] != '') else X[i] for i in range(len(X))]
-        self.arm.set_arm_position(angles)
-        return 0
-
-    def on_transfert_button_right(self):
-        """
-        method linked to the button transfert =>
-        """
-        print('--- EVENT : TRANSFERT => CLICK ---')
-        th0, th1, th2, th3, th4, th5 = self.get_simu_input()
-        angles = [th0, th1, th2, th3, th4, th5]
-        print(angles)
-        self.set_move_input(angles)
-        return 0
-
-    def on_transfert_button_left(self):
-        """
-        method linked to the button transfert <=
-        """
-        print('--- EVENT : TRANSFERT <= CLICK ---')
-        th0, th1, th2, th3, th4, th5 = self.get_move_input()
-        angles = [th0, th1, th2, th3, th4, th5]
-        print(angles)
-        self.set_simu_input(angles)
-        return 0
-
     # -----GETTER AND SETTER-----
 
-    def get_simu_input(self):
+
+    def get_X_input(self):
         """
-        getter of the input values
+        get the input values of the goal position
         :return: return the input values
         """
-        th0 = self.simu0_textbox.text()
-        th1 = self.simu1_textbox.text()
-        th2 = self.simu2_textbox.text()
-        th3 = self.simu3_textbox.text()
-        th4 = self.simu4_textbox.text()
-        th5 = self.simu5_textbox.text()
+        X  = self.textbox_input_X.text()
+        Y  = self.textbox_input_Y.text()
+        Z  = self.textbox_input_Z.text()
+        aX = self.textbox_input_aX.text()
+        aY = self.textbox_input_aY.text()
+        aZ = self.textbox_input_aZ.text()
 
-        if th0 == '':
-            th0 = '0'
-            self.simu0_textbox.setText('0')
+        return X, Y, Z, aX, aY, aZ
 
-        if th1 == '':
-            th1 = '0'
-            self.simu1_textbox.setText('0')
-
-        if th2 == '':
-            th2 = '0'
-            self.simu2_textbox.setText('0')
-
-        if th3 == '':
-            th3 = '0'
-            self.simu3_textbox.setText('0')
-
-        if th4 == '':
-            th4 = '0'
-            self.simu4_textbox.setText('0')
-
-        if th5 == '':
-            th5 = '0'
-            self.simu5_textbox.setText('0')
-
-        return th0, th1, th2, th3, th4, th5
-
-    def get_move_input(self):
-        """
-        getter of the input values
-        :return: return the input values
-        """
-        th0 = self.robotmove0_textbox.text()
-        th1 = self.robotmove1_textbox.text()
-        th2 = self.robotmove2_textbox.text()
-        th3 = self.robotmove3_textbox.text()
-        th4 = self.robotmove4_textbox.text()
-        th5 = self.robotmove5_textbox.text()
-
-        return th0, th1, th2, th3, th4, th5
-
-    def set_move_input(self, X):
+    def get_q_values(self):
         """
         method read the postion of the robot and set the textboxes
         """
+        print('tendies !!!!!!!!')
+        q0 = self.textbox_q0.text()
+        q1 = self.textbox_q1.text()
+        q2 = self.textbox_q2.text()
+        q3 = self.textbox_q3.text()
+        q4 = self.textbox_q4.text()
+        q5 = self.textbox_q5.text()
 
-        self.robotmove0_textbox.setText(X[0])
-        self.robotmove1_textbox.setText(X[1])
-        self.robotmove2_textbox.setText(X[2])
-        self.robotmove3_textbox.setText(X[3])
-        self.robotmove4_textbox.setText(X[4])
-        self.robotmove5_textbox.setText(X[5])
+        print(q0, q1, q2, q3, q4, q5)
+        return q0, q1, q2, q3, q4, q5
 
-        return 0
-
-    def set_simu_input(self, X):
+    def set_q_values(self, X):
         """
         method read the postion of the robot and set the textboxes
+        :param X: list of string values that will by displayed in the textbox
         """
 
-        self.simu0_textbox.setText(X[0])
-        self.simu1_textbox.setText(X[1])
-        self.simu2_textbox.setText(X[2])
-        self.simu3_textbox.setText(X[3])
-        self.simu4_textbox.setText(X[4])
-        self.simu5_textbox.setText(X[5])
+        self.textbox_q0.setText(X[0])
+        self.textbox_q1.setText(X[1])
+        self.textbox_q2.setText(X[2])
+        self.textbox_q3.setText(X[3])
+        self.textbox_q4.setText(X[4])
+        self.textbox_q5.setText(X[5])
 
         return 0
 

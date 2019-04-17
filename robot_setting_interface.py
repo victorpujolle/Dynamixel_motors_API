@@ -252,9 +252,9 @@ class robot_setting_interface(QtWidgets.QWidget):
         print('q [rad] :', q_rad)
 
         # figure and UI control
-        R,t = self.arm.kinematic.compute_FK(q_rad) # compute the total kinematics
+        R,t = self.arm.FK_Generator.compute_FK(q_rad) # compute the total kinematics
 
-        x, y, z = self.arm.kinematic.compute_pose(q_rad)  # compute all partial kinematic
+        x, y, z = self.arm.FK_Generator.compute_pose(q_rad)  # compute all partial kinematic
 
         self.clear_figure() # clear figure
         self.draw_arm([x, y, z]) # draw the arm
