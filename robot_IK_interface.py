@@ -261,9 +261,14 @@ class robot_IK_interface(QtWidgets.QWidget):
         """
         print('--- EVENT : DRAW GOAL CLICK ---')
         [X, Y, Z, aX, aY, aZ] = np.array(charlist2floatlist(self.get_X_input()))
-        print(X, Y, Z, aX, aY, aZ)
+        print('goal input :', X, Y, Z, aX, aY, aZ)
 
         self.draw_single_point([X,Y,Z])
+
+        aZ += 90
+        R = eulerAnglesToRotationMatrix(deg2rad(np.array([aX, aY, aZ])))
+        self.draw_reference_frame([X,Y,Z],R)
+
         self.FigureCanvas.draw()
 
         return 0
@@ -403,6 +408,8 @@ class robot_IK_interface(QtWidgets.QWidget):
         self.axis.plot(x_axis[0], x_axis[1], x_axis[2], color='gray', linewidth = 1.0)
         self.axis.plot(y_axis[0], y_axis[1], y_axis[2], color='gray', linewidth = 1.0)
         self.axis.plot(z_axis[0], z_axis[1], z_axis[2], color='gray', linewidth = 1.0)
+
+        return 0
 
     def draw_reference_frame(self, origin, R, scale=0.1):
         """

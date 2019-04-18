@@ -54,6 +54,28 @@ def floatlist2charlist(l):
     return res
 
 
+# Calculates Rotation Matrix given euler angles.
+def eulerAnglesToRotationMatrix(theta):
+    R_x = np.array([[1, 0, 0],
+                    [0, np.cos(theta[0]), -np.sin(theta[0])],
+                    [0, np.sin(theta[0]),  np.cos(theta[0])]
+                    ])
+
+    R_y = np.array([[np.cos(theta[1]), 0, np.sin(theta[1])],
+                    [0, 1, 0],
+                    [-np.sin(theta[1]), 0, np.cos(theta[1])]
+                    ])
+
+    R_z = np.array([[np.cos(theta[2]), -np.sin(theta[2]), 0],
+                    [np.sin(theta[2]),  np.cos(theta[2]), 0],
+                    [0, 0, 1]
+                    ])
+
+
+    R = np.dot(R_z, np.dot(R_y, R_x))
+
+    return R
+
 # Checks if a matrix is a valid rotation matrix.
 def isRotationMatrix(R):
     Rt = np.transpose(R)
@@ -61,7 +83,6 @@ def isRotationMatrix(R):
     I = np.identity(3, dtype=R.dtype)
     n = np.linalg.norm(I - shouldBeIdentity)
     return n < 1e-6
-
 
 # Calculates rotation matrix to euler angles
 # The result is the same as MATLAB except the order
