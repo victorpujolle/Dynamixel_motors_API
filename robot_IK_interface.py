@@ -101,8 +101,8 @@ class robot_IK_interface(QtWidgets.QWidget):
         Initialisation of the menu
         """
         # create label
-        self.label_input= QtWidgets.QLabel(self)
-        self.label_output = QtWidgets.QLabel(self)
+        self.label_goal= QtWidgets.QLabel(self)
+        self.label_result_X = QtWidgets.QLabel(self)
 
         self.label_X  = QtWidgets.QLabel(self)
         self.label_Y  = QtWidgets.QLabel(self)
@@ -126,6 +126,13 @@ class robot_IK_interface(QtWidgets.QWidget):
         self.textbox_input_aY = QtWidgets.QLineEdit(self)
         self.textbox_input_aZ = QtWidgets.QLineEdit(self)
 
+        self.textbox_output_X = QtWidgets.QLineEdit(self)
+        self.textbox_output_Y = QtWidgets.QLineEdit(self)
+        self.textbox_output_Z = QtWidgets.QLineEdit(self)
+        self.textbox_output_aX = QtWidgets.QLineEdit(self)
+        self.textbox_output_aY = QtWidgets.QLineEdit(self)
+        self.textbox_output_aZ = QtWidgets.QLineEdit(self)
+
         self.textbox_q0 = QtWidgets.QLineEdit(self)
         self.textbox_q1 = QtWidgets.QLineEdit(self)
         self.textbox_q2 = QtWidgets.QLineEdit(self)
@@ -137,6 +144,7 @@ class robot_IK_interface(QtWidgets.QWidget):
         self.button_calculate = QtWidgets.QPushButton('calculate', self)
         self.button_draw_goal = QtWidgets.QPushButton('draw goal', self)
         self.button_draw = QtWidgets.QPushButton('draw', self)
+        self.button_clear = QtWidgets.QPushButton('clear', self)
 
         # resize button and textbox
         self.textbox_input_X.resize(100,20)
@@ -145,6 +153,13 @@ class robot_IK_interface(QtWidgets.QWidget):
         self.textbox_input_aX.resize(100,20)
         self.textbox_input_aY.resize(100,20)
         self.textbox_input_aZ.resize(100,20)
+
+        self.textbox_output_X.resize(100, 20)
+        self.textbox_output_Y.resize(100, 20)
+        self.textbox_output_Z.resize(100, 20)
+        self.textbox_output_aX.resize(100, 20)
+        self.textbox_output_aY.resize(100, 20)
+        self.textbox_output_aZ.resize(100, 20)
 
         self.textbox_q0.resize(100, 20)
         self.textbox_q1.resize(100, 20)
@@ -156,11 +171,12 @@ class robot_IK_interface(QtWidgets.QWidget):
         self.button_calculate.resize(100,30)
         self.button_draw_goal.resize(100,30)
         self.button_draw.resize(100,30)
+        self.button_clear.resize(100, 30)
 
 
         # set text of lables)
-        self.label_input.setText('INPUT')
-        self.label_output.setText('OUTPUT')
+        self.label_goal.setText('GOAL')
+        self.label_result_X.setText('RESULT')
 
         self.label_X.setText('X :')
         self.label_Y.setText('Y :')
@@ -178,8 +194,8 @@ class robot_IK_interface(QtWidgets.QWidget):
 
         # set location of everythink
 
-        self.label_input.move(15+35, 10)
-        self.label_output.move(215+35,10)
+        self.label_goal.move(15 + 35, 10)
+        self.label_result_X.move(215, 10)
 
         self.label_X.move(15, 30)
         self.label_Y.move(15, 30 + 30)
@@ -195,28 +211,37 @@ class robot_IK_interface(QtWidgets.QWidget):
         self.textbox_input_aY.move(15 + 35, 30 + 4 * 30)
         self.textbox_input_aZ.move(15 + 35, 30 + 5 * 30)
 
-        self.label_q0.move(215, 30)
-        self.label_q1.move(215, 30 + 30)
-        self.label_q2.move(215, 30 + 2 * 30)
-        self.label_q3.move(215, 30 + 3 * 30)
-        self.label_q4.move(215, 30 + 4 * 30)
-        self.label_q5.move(215, 30 + 5 * 30)
+        self.textbox_output_X.move( 215, 30)
+        self.textbox_output_Y.move( 215, 30 + 30)
+        self.textbox_output_Z.move( 215, 30 + 2 * 30)
+        self.textbox_output_aX.move(215, 30 + 3 * 30)
+        self.textbox_output_aY.move(215, 30 + 4 * 30)
+        self.textbox_output_aZ.move(215, 30 + 5 * 30)
 
-        self.textbox_q0.move(215 + 35, 30)
-        self.textbox_q1.move(215 + 35, 30 + 30)
-        self.textbox_q2.move(215 + 35, 30 + 2 * 30)
-        self.textbox_q3.move(215 + 35, 30 + 3 * 30)
-        self.textbox_q4.move(215 + 35, 30 + 4 * 30)
-        self.textbox_q5.move(215 + 35, 30 + 5 * 30)
+        self.label_q0.move(15, 10*30)
+        self.label_q1.move(15, 10*30 + 30)
+        self.label_q2.move(15, 10*30 + 2 * 30)
+        self.label_q3.move(15, 10*30 + 3 * 30)
+        self.label_q4.move(15, 10*30 + 4 * 30)
+        self.label_q5.move(15, 10*30 + 5 * 30)
 
-        self.button_calculate.move(150, 220)
+        self.textbox_q0.move(15 + 35, 10*30)
+        self.textbox_q1.move(15 + 35, 10*30 + 30)
+        self.textbox_q2.move(15 + 35, 10*30 + 2 * 30)
+        self.textbox_q3.move(15 + 35, 10*30 + 3 * 30)
+        self.textbox_q4.move(15 + 35, 10*30 + 4 * 30)
+        self.textbox_q5.move(15 + 35, 10*30 + 5 * 30)
+
+        self.button_calculate.move(15+35, 250)
         self.button_draw_goal.move(15+35, 220)
-        self.button_draw.move(215+35, 220)
+        self.button_draw.move(15 + 35, 490)
+        self.button_clear.move(15 + 35, 520)
 
         # link button to method
         self.button_calculate.clicked.connect(self.on_click_calculate)
         self.button_draw_goal.clicked.connect(self.on_click_draw_goal)
         self.button_draw.clicked.connect(self.on_click_draw)
+        self.button_clear.clicked.connect(self.on_click_clear)
 
 
         return 0
@@ -224,31 +249,58 @@ class robot_IK_interface(QtWidgets.QWidget):
     # -----BUTTON FUNCTIONS-----
 
     def on_click_calculate(self):
-        pass
+        """
+        method linked to the button calculate
+        """
+        print('--- EVENT : CALCULATE CLICK ---')
+        self.arm.IK.solve_IK_newton_krylov()
 
     def on_click_draw_goal(self):
-        pass
+        """
+        method linked with the button draw goal
+        """
+        print('--- EVENT : DRAW GOAL CLICK ---')
+        [X, Y, Z, aX, aY, aZ] = np.array(charlist2floatlist(self.get_X_input()))
+        print(X, Y, Z, aX, aY, aZ)
+
+        self.draw_single_point([X,Y,Z])
+        self.FigureCanvas.draw()
+
+        return 0
 
     def on_click_draw(self):
         """
         method linked to the button draw
         """
         print('--- EVENT : DRAW ARM CLICK ---')
-        q_deg = np.array(self.get_q_values()).astype(float)
-        q_rad = deg2rad(q_deg)
-        print('REEEEE')
-        # figure and UI control
-        x, y, z = self.arm.IK_Generator.compute_pose(q_rad)  # compute all partial kinematic
 
-        self.clear_figure()  # clear figure
+        # take the value
+        q_deg = np.array(charlist2floatlist(self.get_q_values()))
+        self.set_q_values(floatlist2charlist(q_deg))
+        q_rad = deg2rad(q_deg)
+
+
+        # figure and UI control
+        x, y, z = self.arm.IK.compute_pose(q_rad)  # compute all partial kinematic
+        R,t = self.arm.IK.compute_FK(q_rad) # compute end effector kinematic
+
+        self.draw_reference_frame(t,R)
         self.draw_arm([x, y, z])  # draw the arm
         # self.draw_ref(list_vector_frame, list_origin_frame)
         self.FigureCanvas.draw()
 
         return 0
 
-    # -----GETTER AND SETTER-----
+    def on_click_clear(self):
+        """
+        method linked to the button clear
+        """
+        print('--- EVENT : ClEAR CLICK ---')
+        self.clear_figure()  # clear figure
+        self.FigureCanvas.draw()
+        return 0
 
+    # -----GETTER AND SETTER-----
 
     def get_X_input(self):
         """
@@ -268,7 +320,7 @@ class robot_IK_interface(QtWidgets.QWidget):
         """
         method read the postion of the robot and set the textboxes
         """
-        print('tendies !!!!!!!!')
+
         q0 = self.textbox_q0.text()
         q1 = self.textbox_q1.text()
         q2 = self.textbox_q2.text()
@@ -276,12 +328,24 @@ class robot_IK_interface(QtWidgets.QWidget):
         q4 = self.textbox_q4.text()
         q5 = self.textbox_q5.text()
 
-        print(q0, q1, q2, q3, q4, q5)
         return q0, q1, q2, q3, q4, q5
+
+    def set_X_output(self, X):
+        """
+        :param X: list of string values that will by displayed in the textbox
+        """
+
+        self.textbox_output_X.setText(X[0])
+        self.textbox_output_Y.setText(X[1])
+        self.textbox_output_Z.setText(X[2])
+        self.textbox_output_aX.setText(X[3])
+        self.textbox_output_aY.setText(X[4])
+        self.textbox_output_aZ.setText(X[5])
+
+        return 0
 
     def set_q_values(self, X):
         """
-        method read the postion of the robot and set the textboxes
         :param X: list of string values that will by displayed in the textbox
         """
 
@@ -322,5 +386,49 @@ class robot_IK_interface(QtWidgets.QWidget):
 
         self.axis.plot(x, y, z, color='orange', linewidth=3.0)
         self.axis.scatter(x, y, z, linewidth=3.0)
+
+        return 0
+
+    def draw_single_point(self,X):
+        """
+        this method draw on the figure a single point, with a special emphasis on this point
+        :param X: x,y,z coordinates of the point
+        """
+        [x,y,z] = X
+        x_axis = np.array([[self.axis_xlim3d[0], y, z], [self.axis_xlim3d[1], y, z]]).T
+        y_axis = np.array([[x, self.axis_ylim3d[0], z], [x, self.axis_ylim3d[1], z]]).T
+        z_axis = np.array([[x, y, self.axis_zlim3d[0]], [x, y, self.axis_zlim3d[1]]]).T
+
+        self.axis.scatter(x, y, z, color='gray', linewidth = 0.05)
+        self.axis.plot(x_axis[0], x_axis[1], x_axis[2], color='gray', linewidth = 1.0)
+        self.axis.plot(y_axis[0], y_axis[1], y_axis[2], color='gray', linewidth = 1.0)
+        self.axis.plot(z_axis[0], z_axis[1], z_axis[2], color='gray', linewidth = 1.0)
+
+    def draw_reference_frame(self, origin, R, scale=0.1):
+        """
+        draw a reference frame at the given origin with a rotation R
+        :param origin: point
+        :param R: rotation matrix
+        """
+        scale_x = (self.axis_xlim3d[1] - self.axis_xlim3d[0]) * scale
+        scale_y = (self.axis_ylim3d[1] - self.axis_ylim3d[0]) * scale
+        scale_z = (self.axis_zlim3d[1] - self.axis_zlim3d[0]) * scale
+        x_vect = np.array([1, 0, 0])
+        y_vect = np.array([0, 1, 0])
+        z_vect = np.array([0, 0, 1])
+
+        rotated_x_vect = origin + R.dot(x_vect)*scale_x
+        rotated_y_vect = origin + R.dot(y_vect)*scale_x
+        rotated_z_vect = origin + R.dot(z_vect)*scale_x
+
+        print(rotated_x_vect)
+        print(rotated_y_vect)
+        print(rotated_z_vect)
+
+        ref = np.array([rotated_x_vect, origin, rotated_y_vect, origin, rotated_z_vect]).T
+
+
+
+        self.axis.plot(ref[0], ref[1], ref[2], color='red', linewidth=2.0)
 
         return 0

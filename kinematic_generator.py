@@ -317,6 +317,25 @@ class IK_Generator(FK_Generator):
         # super init
         super(IK_Generator, self).__init__(L, OFFSET, ORIGIN_TRANS, Q_MIN, Q_MAX)
 
+    def FK(self,q):
+        """
+        return the result of the FK
+        :return: X, Y, Z, aX, aY, aZ position and angles of each axis
+        """
+        T = self.compute_T0_eef(q[0], q[1], q[2], q[3], q[4], q[5])
+        [X, Y, Z] = T[0:3, -1]
+        R = T[0:3, 0:3]
+
+        return X,Y,Z
+
+    def solve_IK_newton_krylov(self, q_in=np.array([0,0,0,0,0,0])):
+        """
+        Use the newton_krylov method to optimize FK(q) - goal
+        :param q_in: initial guess for q
+        :return: optimized q
+        """
+        print(q_in)
+        print(self.FK(q_in))
         
 
 
