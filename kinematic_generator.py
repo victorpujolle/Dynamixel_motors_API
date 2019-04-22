@@ -1,4 +1,5 @@
 import numpy as np
+from utils import *
 
 
 class FK_Generator():
@@ -319,23 +320,39 @@ class IK_Generator(FK_Generator):
 
     def FK(self,q):
         """
-        return the result of the FK
+        computes the FK
+        :param q: angles of joints
         :return: X, Y, Z, aX, aY, aZ position and angles of each axis
         """
         T = self.compute_T0_eef(q[0], q[1], q[2], q[3], q[4], q[5])
         [X, Y, Z] = T[0:3, -1]
         R = T[0:3, 0:3]
 
-        return X,Y,Z
+        angles = rotationMatrixToEulerAngles(R)
 
-    def solve_IK_newton_krylov(self, q_in=np.array([0,0,0,0,0,0])):
+        return X, Y, Z, angles[0], angles[1], angles[2]
+
+
+    def compute_J(self, q, h=0.001):
         """
-        Use the newton_krylov method to optimize FK(q) - goal
-        :param q_in: initial guess for q
-        :return: optimized q
+        this function compute a numerical approximation of the jacobian of the FK
+        :param q: angles of joints
+        :param h: the computational step
+        :return: J
         """
-        print(q_in)
-        print(self.FK(q_in))
+        J = np.zeros((len(q), 6))
+        q_copy = np.copy(q)
+        f_q = np.array(self.FK(q_copy))
+        
+        for i in range(len(q)):
+            q_copy = q
+            q_copy[i] += h
+            f_qh = np.array(self.FK(q_copy))
+            J[i] = (f_qh - f_q) / h
+
+
+        return J.T # J is actually the transpose of the matrix we calculated
+
         
 
 

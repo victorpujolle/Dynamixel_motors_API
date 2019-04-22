@@ -253,7 +253,13 @@ class robot_IK_interface(QtWidgets.QWidget):
         method linked to the button calculate
         """
         print('--- EVENT : CALCULATE CLICK ---')
-        self.arm.IK.solve_IK_newton_krylov()
+        # take the value
+        [X, Y, Z, aX, aY, aZ] = np.array(charlist2floatlist(self.get_X_input()))
+        [aX_rad, aY_rad, aZ_rad] = deg2rad(np.array([aX, aY, aZ]))
+
+        self.arm.IK.compute_J(np.array([X, Y , Z, aX_rad, aY_rad, aZ_rad]))
+
+        return 0
 
     def on_click_draw_goal(self):
         """

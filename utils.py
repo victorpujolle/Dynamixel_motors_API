@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 def pseudo_conversion(n, length_res=2):
     """
