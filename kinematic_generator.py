@@ -353,6 +353,30 @@ class IK_Generator(FK_Generator):
 
         return J.T # J is actually the transpose of the matrix we calculated
 
+    def compute_J_plus(self, q, h=0.001):
+        """
+        This function computes the Moore*Penrose pseudoinverse of J
+        :param q: angles of joints
+        :param h: the computational step
+        :return: J+
+        """
+        J = self.compute_J(q, h)
+        J_plus = np.linalg.pinv(J)
+
+        return J_plus
+
+    def gradient_descent(self, alpha=0.01, h=0.001):
+        """
+        Computes the gradient descent for the IK
+        :param alpha: the gradient step
+        :param h: the computational step delta q
+        :return:
+        """
+
+
+
+
+
         
 
 
