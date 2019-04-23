@@ -14,6 +14,7 @@ from utils import *
 import glob
 import socket
 import math
+import time
 
 
 class robot_IK_interface(QtWidgets.QWidget):
@@ -253,12 +254,23 @@ class robot_IK_interface(QtWidgets.QWidget):
         method linked to the button calculate
         """
         print('--- EVENT : CALCULATE CLICK ---')
-        # take the value
+        # take the value for the goal
         [X, Y, Z, aX, aY, aZ] = np.array(charlist2floatlist(self.get_X_input()))
         [aX_rad, aY_rad, aZ_rad] = deg2rad(np.array([aX, aY, aZ]))
 
-        J = self.arm.IK.compute_J(np.array([X, Y , Z, aX_rad, aY_rad, aZ_rad]))
-        Jplus = self.arm.IK.compute_J_plus(np.array([X, Y , Z, aX_rad, aY_rad, aZ_rad]))
+        # take the values of the angles as first guess
+        q_deg = np.array(charlist2floatlist(self.get_q_values()))
+        self.set_q_values(floatlist2charlist(q_deg))
+        q_rad = deg2rad(q_deg)
+
+
+        # compute the IK
+        goal = np.array([X, Y, Z, aX, aY, aZ])
+        first_guess = q_rad
+        X_list = self.arm.IK.gradient_descent(goal, first_guess)
+        print(X_list.shape)
+        self.draw_arm_trajectory(X_list)
+
         return 0
 
     def on_click_draw_goal(self):
@@ -445,3 +457,15 @@ class robot_IK_interface(QtWidgets.QWidget):
         self.axis.plot(ref[0], ref[1], ref[2], color='red', linewidth=2.0)
 
         return 0
+
+    def draw_arm_trajectory(self,X_list):
+        """
+        draw an animation of the arm following each position in X_list
+        :param X_list: list of x,y,z coordinates of the points
+        """
+        for X in X_list:
+            print(X)
+            self.clear_figure()
+            self.draw_arm(X)
+            self.FigureCanvas.draw()
+            time.sleep(0.01)

@@ -332,7 +332,6 @@ class IK_Generator(FK_Generator):
 
         return X, Y, Z, angles[0], angles[1], angles[2]
 
-
     def compute_J(self, q, h=0.001):
         """
         this function compute a numerical approximation of the jacobian of the FK
@@ -365,13 +364,67 @@ class IK_Generator(FK_Generator):
 
         return J_plus
 
-    def gradient_descent(self, alpha=0.01, h=0.001):
+    def norm(self,q1,q2):
+        """
+        defines the norm used to mesure the space
+        :param q1: [X,Y,Z,aX,aY,aZ]
+        :param q2: [X,Y,Z,aX,aY,aZ]
+        :return: the norm between q1 and q2 : d, da d=distance ; da=angle
+        """
+        [X1,Y1,Z1,aX1,aY1,aZ1] = q1
+        [X2,Y2,Z2,aX2,aY2,aZ2] = q2
+
+        d = np.sqrt((X1 - X2)**2 + (Y1 - Y2)**2 +(Z1 - Z2)**2) # euclidean distance between q1 and q2
+
+        daX = min(abs(aX1 - aX2), 2 * np.pi * abs(aX1 - aX2))
+        daY = min(abs(aY1 - aY2), 2 * np.pi * abs(aY1 - aY2))
+        daZ = min(abs(aZ1 - aZ2), 2 * np.pi * abs(aZ1 - aZ2))
+
+        da = np.sqrt(daX**2 + daY**2 + daZ**2) # euclidean distance between euler angles
+
+        return d,da
+
+
+    def gradient_descent(self, goal, q_in, end_error=None, alpha=0.01, h=0.001, verbose=True):
         """
         Computes the gradient descent for the IK
-        :param alpha: the gradient step
+        :param goal: goal point and orientation
+        :param q_in: initial guess for the angles
+        :param end_error: the end condition -> if (error <= end_error): stop iterations
+        :param alpha: the learning rate
         :param h: the computational step delta q
         :return:
         """
+        f = self.FK(q_in) # forward kinematic output
+        d, da = self.norm(goal,f)
+        q = np.copy(q_in)
+        print(d,da)
+        q_list = []
+        X_list = []
+
+        # start iterations
+        for i in range(100):
+
+
+            J_plus = self.compute_J_plus(q, h)
+            delta_q = np.dot(J_plus, f)
+            q += alpha*delta_q
+            q_list.append(q)
+            f = self.FK(q)
+            d, da = self.norm(goal, f)
+
+            if verbose:
+                print('iteration {}, distance error {}, angle error {}'.format(i,d,da))
+
+        for q in q_list:
+            X_list.append(np.array(self.compute_pose(q)))
+
+        return np.array(X_list)
+
+
+
+
+
 
 
 
