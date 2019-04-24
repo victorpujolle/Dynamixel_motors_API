@@ -416,10 +416,8 @@ class IK_Generator(FK_Generator):
             if verbose:
                 print('iteration {}, distance error {}, angle error {}'.format(i,d,da))
 
-        for q in q_list:
-            X_list.append(np.array(self.compute_pose(q)))
 
-        return np.array(X_list)
+        return np.array(q_list)
 
 
 

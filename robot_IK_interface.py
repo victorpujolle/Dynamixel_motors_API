@@ -2,9 +2,12 @@ import sys
 import os
 
 import numpy as np
-import matplotlib.pyplot as plt
+
 from mpl_toolkits.mplot3d import Axes3D
 from PyQt5 import QtWidgets, QtCore
+
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from Arm import Arm
@@ -267,9 +270,15 @@ class robot_IK_interface(QtWidgets.QWidget):
         # compute the IK
         goal = np.array([X, Y, Z, aX, aY, aZ])
         first_guess = q_rad
-        X_list = self.arm.IK.gradient_descent(goal, first_guess)
-        print(X_list.shape)
-        self.draw_arm_trajectory(X_list)
+        q_list = self.arm.IK.gradient_descent(goal, first_guess)
+
+        # set output
+        self.set_q_values(floatlist2charlist(np.round(q_list[-1],3)))
+
+        # draw the animation
+        self.draw_arm_trajectory(q_list)
+
+        print('--DONE---')
 
         return 0
 
@@ -458,14 +467,43 @@ class robot_IK_interface(QtWidgets.QWidget):
 
         return 0
 
-    def draw_arm_trajectory(self,X_list):
+    def draw_arm_trajectory(self, q_list):
         """
         draw an animation of the arm following each position in X_list
-        :param X_list: list of x,y,z coordinates of the points
+        :param X_list: list of x,y,z coordinates of the points shape : (len(data), 3, nb_points_in_the_arm)
         """
-        for X in X_list:
-            print(X)
-            self.clear_figure()
-            self.draw_arm(X)
-            self.FigureCanvas.draw()
-            time.sleep(0.01)
+        nb_frame = q_list.shape[0]
+        print(nb_frame)
+
+        def update_lines(frame, arm_drawing_data):
+            q = q_list[frame]
+            [x,y,z] = self.arm.IK.compute_pose(q)
+
+            arm_drawing_data.set_data(data[0:2, :frame])
+            arm_drawing_data.set_3d_properties(data[2, :frame])
+            return lines
+
+        # Attaching 3D axis to the figure
+        fig = self.Figure
+        ax = self.axis
+
+        # Setting the axes properties
+        self.clear_figure()
+
+        # Fifty lines of random 3-D lines
+        data = X_list
+
+        # Creating fifty line objects.
+        # NOTE: Can't pass empty arrays into 3d version of plot()
+        lines = [ax.plot(dat[0, 0:1], dat[1, 0:1], dat[2, 0:1])[0] for dat in data]
+
+
+
+        # Creating the Animation object
+        line_ani = animation.FuncAnimation(fig, update_lines, 100, fargs=(data, lines), interval=50, blit=False)
+
+
+        self.FigureCanvas.draw()
+
+        return 0
+
