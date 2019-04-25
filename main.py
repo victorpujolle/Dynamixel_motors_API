@@ -30,12 +30,28 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------------------------------
 
     # --------------------------------------- MOUVEMENTS TESTS ----------------------------------------
+    UI = True
 
-    # UI
-    QApp = QtWidgets.QApplication(sys.argv)
-    app = robot_IK_interface(ArmAPI)
-    app.show()
-    sys.exit(QApp.exec_())
+    if UI:
+        # UI
+        QApp = QtWidgets.QApplication(sys.argv)
+        app = robot_IK_interface(ArmAPI)
+        app.show()
+        sys.exit(QApp.exec_())
+
+    else:
+        # eval
+        d_list= []
+        for i in range(100):
+            print('i :',i)
+            goal = np.array([(np.random.rand()-0.5)*0.4 , (np.random.rand()-0.5)*0.4 , (np.random.rand()*0.2+0.4)  , 0 , 0 , 0])
+            first_guess = np.array([0 , 0 , 0 , 0 , 0 , 0])
+            res = ArmAPI.IK.gradient_descent(goal, first_guess)
+            d_list.append(ArmAPI.IK.norm_eval(goal, res['x']))
+
+        d_list = np.array(d_list)
+        np.savetxt('../Evaluation_files/result_optimization_100.csv', d_list, delimiter=',')
+
 
 
     # -------------------------------------------------------------------------------------------------

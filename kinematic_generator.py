@@ -1,5 +1,6 @@
 import numpy as np
 from utils import *
+import scipy.optimize
 
 
 class FK_Generator():
@@ -364,62 +365,73 @@ class IK_Generator(FK_Generator):
 
         return J_plus
 
-    def norm(self,q1,q2):
+    def norm_opti(self, q1, q2):
         """
-        defines the norm used to mesure the space
+        defines the norm used to mesure the space during the optimisation
         :param q1: [X,Y,Z,aX,aY,aZ]
         :param q2: [X,Y,Z,aX,aY,aZ]
-        :return: the norm between q1 and q2 : d, da d=distance ; da=angle
+        :return: the norm between q1 and q2 : d, for now it works but there is no physical meaning to this distance
         """
         [X1,Y1,Z1,aX1,aY1,aZ1] = q1
         [X2,Y2,Z2,aX2,aY2,aZ2] = q2
-
-        d = np.sqrt((X1 - X2)**2 + (Y1 - Y2)**2 +(Z1 - Z2)**2) # euclidean distance between q1 and q2
 
         daX = min(abs(aX1 - aX2), 2 * np.pi * abs(aX1 - aX2))
         daY = min(abs(aY1 - aY2), 2 * np.pi * abs(aY1 - aY2))
         daZ = min(abs(aZ1 - aZ2), 2 * np.pi * abs(aZ1 - aZ2))
 
-        da = np.sqrt(daX**2 + daY**2 + daZ**2) # euclidean distance between euler angles
+        daX = 0
+        daY = 0
+        daZ = 0
+
+        d = np.sqrt((X1 - X2)**2 + (Y1 - Y2)**2 +(Z1 - Z2)**2 + daX**2 + daY**2 + daZ**2)
+
+        return d
+
+    def norm_eval(self, q1, q2):
+        """
+        defines the norm used to mesure the space during the evaluation
+        :param q1: [X,Y,Z,aX,aY,aZ]
+        :param q2: [X,Y,Z,aX,aY,aZ]
+        :return: the norm between q1 and q2 : d, for now it works but there is no physical meaning to this distance
+        """
+        [X1, Y1, Z1, aX1, aY1, aZ1] = q1
+        [X2, Y2, Z2, aX2, aY2, aZ2] = q2
+
+        daX = min(abs(aX1 - aX2), 2 * np.pi * abs(aX1 - aX2))
+        daY = min(abs(aY1 - aY2), 2 * np.pi * abs(aY1 - aY2))
+        daZ = min(abs(aZ1 - aZ2), 2 * np.pi * abs(aZ1 - aZ2))
+
+        d = np.sqrt((X1 - X2) ** 2 + (Y1 - Y2) ** 2 + (Z1 - Z2) ** 2)
+
+        da = np.average(np.abs(np.array([daX,daY,daZ])))
 
         return d,da
 
 
-    def gradient_descent(self, goal, q_in, end_error=None, alpha=0.01, h=0.001, verbose=True):
+    def gradient_descent(self, goal, q_in):
         """
         Computes the gradient descent for the IK
         :param goal: goal point and orientation
         :param q_in: initial guess for the angles
-        :param end_error: the end condition -> if (error <= end_error): stop iterations
-        :param alpha: the learning rate
-        :param h: the computational step delta q
-        :return:
         """
-        f = self.FK(q_in) # forward kinematic output
-        d, da = self.norm(goal,f)
-        q = np.copy(q_in)
-        print(d,da)
-        q_list = []
-        X_list = []
 
-        # start iterations
-        for i in range(100):
+        # loss function
+        def fun(q):
+            fk = self.FK(q)
+            d = self.norm_opti(fk, goal)
+            return d
 
+        # first guess
+        x0 = q_in
 
-            J_plus = self.compute_J_plus(q, h)
-            delta_q = np.dot(J_plus, f)
-            q += alpha*delta_q
-            q_list.append(q)
-            f = self.FK(q)
-            d, da = self.norm(goal, f)
+        # angles boundaries
+        bounds = [(np.pi / 180 * self.Q_MIN[i], np.pi / 180 * self.Q_MAX[i]) for i in range(len(self.Q_MAX))]
+        # bounds only for L-BFGS-B, TNC, SLSQP and trust-constr method
 
-            if verbose:
-                print('iteration {}, distance error {}, angle error {}'.format(i,d,da))
+        # optimization algo
+        res = scipy.optimize.minimize(fun, x0, method='TNC', jac='2-point' , bounds=bounds)
 
-
-        return np.array(q_list)
-
-
+        return (res)
 
 
 

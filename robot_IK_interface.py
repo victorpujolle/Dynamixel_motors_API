@@ -20,6 +20,8 @@ import math
 import time
 
 
+
+
 class robot_IK_interface(QtWidgets.QWidget):
     """
     The goal of this interface is the simulation of the IK
@@ -43,6 +45,9 @@ class robot_IK_interface(QtWidgets.QWidget):
 
         # init menu
         self.init_menu()
+
+        # init randomness for the sake of reproductability
+        np.random.seed(19680801)
 
     # ------INIT FUNCTIONS-----
 
@@ -257,9 +262,20 @@ class robot_IK_interface(QtWidgets.QWidget):
         method linked to the button calculate
         """
         print('--- EVENT : CALCULATE CLICK ---')
+        # clear the figure
+        self.clear_figure()
+
+
         # take the value for the goal
         [X, Y, Z, aX, aY, aZ] = np.array(charlist2floatlist(self.get_X_input()))
         [aX_rad, aY_rad, aZ_rad] = deg2rad(np.array([aX, aY, aZ]))
+
+
+        # draw goal
+        self.draw_single_point([X, Y, Z])
+        R = eulerAnglesToRotationMatrix(deg2rad(np.array([aX, aY, aZ])))
+        self.draw_reference_frame([X, Y, Z], R)
+
 
         # take the values of the angles as first guess
         q_deg = np.array(charlist2floatlist(self.get_q_values()))
@@ -270,29 +286,34 @@ class robot_IK_interface(QtWidgets.QWidget):
         # compute the IK
         goal = np.array([X, Y, Z, aX, aY, aZ])
         first_guess = q_rad
-        q_list = self.arm.IK.gradient_descent(goal, first_guess)
+
+        result = self.arm.IK.gradient_descent(goal, first_guess)
+        q_f = rad2deg(result['x'])
 
         # set output
-        self.set_q_values(floatlist2charlist(np.round(q_list[-1],3)))
+        self.set_q_values(floatlist2charlist(np.round(q_f,3)))
 
-        # draw the animation
-        self.draw_arm_trajectory(q_list)
+        # draw arm
 
-        print('--DONE---')
+        x, y, z = self.arm.IK.compute_pose(q_rad)  # compute all partial kinematic
+        R, t = self.arm.IK.compute_FK(q_rad)  # compute end effector kinematic
+        self.draw_reference_frame(t, R)
+        self.draw_arm([x, y, z])  # draw the arm
 
+        self.FigureCanvas.draw()
         return 0
 
-    def on_click_draw_goal(self):
+    def on_click_draw_goal(self, verbose=True):
         """
         method linked with the button draw goal
         """
         print('--- EVENT : DRAW GOAL CLICK ---')
         [X, Y, Z, aX, aY, aZ] = np.array(charlist2floatlist(self.get_X_input()))
-        print('goal input :', X, Y, Z, aX, aY, aZ)
+
+        if verbose: print('goal input :', X, Y, Z, aX, aY, aZ)
 
         self.draw_single_point([X,Y,Z])
 
-        aZ += 90
         R = eulerAnglesToRotationMatrix(deg2rad(np.array([aX, aY, aZ])))
         self.draw_reference_frame([X,Y,Z],R)
 
@@ -347,6 +368,21 @@ class robot_IK_interface(QtWidgets.QWidget):
         aZ = self.textbox_input_aZ.text()
 
         return X, Y, Z, aX, aY, aZ
+
+    def set_X_input(self, X):
+        """
+        method used for testing
+        :param X: list of string values that will by displayed in the textbox
+        """
+
+        self.textbox_input_X.setText(X[0])
+        self.textbox_input_Y.setText(X[1])
+        self.textbox_input_Z.setText(X[2])
+        self.textbox_input_aX.setText(X[3])
+        self.textbox_input_aY.setText(X[4])
+        self.textbox_input_aZ.setText(X[5])
+
+        return 0
 
     def get_q_values(self):
         """
@@ -455,10 +491,6 @@ class robot_IK_interface(QtWidgets.QWidget):
         rotated_y_vect = origin + R.dot(y_vect)*scale_x
         rotated_z_vect = origin + R.dot(z_vect)*scale_x
 
-        print(rotated_x_vect)
-        print(rotated_y_vect)
-        print(rotated_z_vect)
-
         ref = np.array([rotated_x_vect, origin, rotated_y_vect, origin, rotated_z_vect]).T
 
 
@@ -475,13 +507,14 @@ class robot_IK_interface(QtWidgets.QWidget):
         nb_frame = q_list.shape[0]
         print(nb_frame)
 
-        def update_lines(frame, arm_drawing_data):
+        def update_lines(frame, plot, scatter):
             q = q_list[frame]
             [x,y,z] = self.arm.IK.compute_pose(q)
-
-            arm_drawing_data.set_data(data[0:2, :frame])
-            arm_drawing_data.set_3d_properties(data[2, :frame])
-            return lines
+            plot.set_data(x, y)
+            plot.set_3d_properties(z)
+            scatter.set_data(x, y)
+            scatter.set_3d_properties(z)
+            return 0
 
         # Attaching 3D axis to the figure
         fig = self.Figure
@@ -490,17 +523,17 @@ class robot_IK_interface(QtWidgets.QWidget):
         # Setting the axes properties
         self.clear_figure()
 
-        # Fifty lines of random 3-D lines
-        data = X_list
+        # init data
+        [x, y, z] = self.arm.IK.compute_pose(q_list[0])
 
         # Creating fifty line objects.
         # NOTE: Can't pass empty arrays into 3d version of plot()
-        lines = [ax.plot(dat[0, 0:1], dat[1, 0:1], dat[2, 0:1])[0] for dat in data]
-
+        plot = ax.plot(x, y, z, color='orange', linewidth=3.0)
+        scatter = ax.scatter(x, y, z, linewidth=3.0)
 
 
         # Creating the Animation object
-        line_ani = animation.FuncAnimation(fig, update_lines, 100, fargs=(data, lines), interval=50, blit=False)
+        line_ani = animation.FuncAnimation(fig, update_lines, nb_frame, fargs=(plot,scatter), interval=50, blit=False)
 
 
         self.FigureCanvas.draw()
