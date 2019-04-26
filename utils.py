@@ -105,3 +105,11 @@ def rotationMatrixToEulerAngles(R):
         z = 0
 
     return np.array([x, y, z])
+
+def norm_geodesic(P,Q):
+    """
+    computes the geodesic distance between two rotation matrices P and Q
+    """
+    R = np.dot(P,Q.T)
+    theta = math.acos((np.trace(R)-1) / 2)
+    return theta

@@ -375,15 +375,11 @@ class IK_Generator(FK_Generator):
         [X1,Y1,Z1,aX1,aY1,aZ1] = q1
         [X2,Y2,Z2,aX2,aY2,aZ2] = q2
 
-        daX = min(abs(aX1 - aX2), 2 * np.pi * abs(aX1 - aX2))
-        daY = min(abs(aY1 - aY2), 2 * np.pi * abs(aY1 - aY2))
-        daZ = min(abs(aZ1 - aZ2), 2 * np.pi * abs(aZ1 - aZ2))
+        P = eulerAnglesToRotationMatrix([aX1,aY1,aZ1])
+        Q = eulerAnglesToRotationMatrix([aX2, aY2, aZ2])
+        theta = norm_geodesic(P,Q)
 
-        daX = 0
-        daY = 0
-        daZ = 0
-
-        d = np.sqrt((X1 - X2)**2 + (Y1 - Y2)**2 +(Z1 - Z2)**2 + daX**2 + daY**2 + daZ**2)
+        d = np.sqrt((X1 - X2)**2 + (Y1 - Y2)**2 +(Z1 - Z2)**2)
 
         return d
 
@@ -397,15 +393,14 @@ class IK_Generator(FK_Generator):
         [X1, Y1, Z1, aX1, aY1, aZ1] = q1
         [X2, Y2, Z2, aX2, aY2, aZ2] = q2
 
-        daX = min(abs(aX1 - aX2), 2 * np.pi * abs(aX1 - aX2))
-        daY = min(abs(aY1 - aY2), 2 * np.pi * abs(aY1 - aY2))
-        daZ = min(abs(aZ1 - aZ2), 2 * np.pi * abs(aZ1 - aZ2))
+        P = eulerAnglesToRotationMatrix([aX1, aY1, aZ1])
+        Q = eulerAnglesToRotationMatrix([aX2, aY2, aZ2])
+        theta = norm_geodesic(P, Q)
 
         d = np.sqrt((X1 - X2) ** 2 + (Y1 - Y2) ** 2 + (Z1 - Z2) ** 2)
 
-        da = np.average(np.abs(np.array([daX,daY,daZ])))
 
-        return d,da
+        return d,theta
 
 
     def gradient_descent(self, goal, q_in):

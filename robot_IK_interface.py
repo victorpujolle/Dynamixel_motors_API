@@ -154,6 +154,7 @@ class robot_IK_interface(QtWidgets.QWidget):
         self.button_draw_goal = QtWidgets.QPushButton('draw goal', self)
         self.button_draw = QtWidgets.QPushButton('draw', self)
         self.button_clear = QtWidgets.QPushButton('clear', self)
+        self.button_move = QtWidgets.QPushButton('move', self)
 
         # resize button and textbox
         self.textbox_input_X.resize(100,20)
@@ -181,7 +182,7 @@ class robot_IK_interface(QtWidgets.QWidget):
         self.button_draw_goal.resize(100,30)
         self.button_draw.resize(100,30)
         self.button_clear.resize(100, 30)
-
+        self.button_move.resize(100, 30)
 
         # set text of lables)
         self.label_goal.setText('GOAL')
@@ -245,13 +246,14 @@ class robot_IK_interface(QtWidgets.QWidget):
         self.button_draw_goal.move(15+35, 220)
         self.button_draw.move(15 + 35, 490)
         self.button_clear.move(15 + 35, 520)
+        self.button_move.move(215, 220)
 
         # link button to method
         self.button_calculate.clicked.connect(self.on_click_calculate)
         self.button_draw_goal.clicked.connect(self.on_click_draw_goal)
         self.button_draw.clicked.connect(self.on_click_draw)
         self.button_clear.clicked.connect(self.on_click_clear)
-
+        self.button_move.clicked.connect(self.on_click_move)
 
         return 0
 
@@ -275,30 +277,38 @@ class robot_IK_interface(QtWidgets.QWidget):
         self.draw_single_point([X, Y, Z])
         R = eulerAnglesToRotationMatrix(deg2rad(np.array([aX, aY, aZ])))
         self.draw_reference_frame([X, Y, Z], R)
+        self.FigureCanvas.draw()
 
-
-        # take the values of the angles as first guess
-        q_deg = np.array(charlist2floatlist(self.get_q_values()))
+        # take the values of the angles as first guess but with small random deviation
+        q_deg = np.array(charlist2floatlist(self.get_q_values())) + np.random.rand(6)*180 / 100
         self.set_q_values(floatlist2charlist(q_deg))
         q_rad = deg2rad(q_deg)
+
 
 
         # compute the IK
         goal = np.array([X, Y, Z, aX, aY, aZ])
         first_guess = q_rad
 
+
         result = self.arm.IK.gradient_descent(goal, first_guess)
         q_f = rad2deg(result['x'])
+
 
         # set output
         self.set_q_values(floatlist2charlist(np.round(q_f,3)))
 
-        # draw arm
 
+        # draw arm
         x, y, z = self.arm.IK.compute_pose(q_rad)  # compute all partial kinematic
         R, t = self.arm.IK.compute_FK(q_rad)  # compute end effector kinematic
         self.draw_reference_frame(t, R)
         self.draw_arm([x, y, z])  # draw the arm
+
+        a = rotationMatrixToEulerAngles(R)
+        fk = floatlist2charlist(np.round(np.array([t[0],t[1],t[2],a[0],a[1],a[2]])))
+        self.set_X_output(fk)
+
 
         self.FigureCanvas.draw()
         return 0
@@ -352,6 +362,19 @@ class robot_IK_interface(QtWidgets.QWidget):
         self.clear_figure()  # clear figure
         self.FigureCanvas.draw()
         return 0
+
+    def on_click_move(self):
+        """
+        method linked to the button clear
+        """
+        print('--- EVENT :MOVE CLICK ---')
+        th0, th1, th2, th3, th4, th5 = self.get_q_values()
+        X = [th0, th1, th2, th3, th4, th5]
+        angles = [float(X[i]) if (X[i] != '') else X[i] for i in range(len(X))]
+        self.arm.set_arm_position([0,0,0,0,0,0])
+        self.arm.set_arm_position(angles)
+        return 0
+
 
     # -----GETTER AND SETTER-----
 
