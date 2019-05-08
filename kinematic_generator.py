@@ -328,7 +328,6 @@ class IK_Generator(FK_Generator):
         T = self.compute_T0_eef(q[0], q[1], q[2], q[3], q[4], q[5])
         [X, Y, Z] = T[0:3, -1]
         R = T[0:3, 0:3]
-
         angles = rotationMatrixToEulerAngles(R)
 
         return X, Y, Z, angles[0], angles[1], angles[2]
@@ -383,11 +382,12 @@ class IK_Generator(FK_Generator):
 
         return d
 
-    def norm_eval(self, q1, q2):
+    def norm_eval(self, q1, q2, w = 1):
         """
         defines the norm used to mesure the space during the evaluation
         :param q1: [X,Y,Z,aX,aY,aZ]
         :param q2: [X,Y,Z,aX,aY,aZ]
+        :param w: weigth of the distance compare to the angle
         :return: the norm between q1 and q2 : d, for now it works but there is no physical meaning to this distance
         """
         [X1, Y1, Z1, aX1, aY1, aZ1] = q1
@@ -395,13 +395,34 @@ class IK_Generator(FK_Generator):
 
         P = eulerAnglesToRotationMatrix([aX1, aY1, aZ1])
         Q = eulerAnglesToRotationMatrix([aX2, aY2, aZ2])
-        theta = norm_geodesic(P, Q)
+        theta = norm_geodesic(P, Q) * 180/(2*np.pi)
 
         d = np.sqrt((X1 - X2) ** 2 + (Y1 - Y2) ** 2 + (Z1 - Z2) ** 2)
 
+        return [d**2 * theta**2, d, theta]
 
-        return d,theta
+    def norm_final(self, eef, goal):
+        """
+        the norm used to control the robot holding the camera
+        the line continues the eef, the returned value is the distance between the goal point and this line
+        :param eef: position of the eef
+        :param goal: position of the goal (the angle is not important)
+        """
+        [X1, Y1, Z1, aX1, aY1, aZ1] = eef # eef
+        [X2, Y2, Z2, _, _, _] = goal # goal
 
+        R = eulerAnglesToRotationMatrix([aX1, aY1, aZ1])
+        uz = np.array([0,0,1])
+        u = np.dot(R,uz)
+
+        B = np.array([X1, Y1, Z1])
+        A = np.array([X2, Y2, Z2])
+        BA = A-B
+        n = np.linalg.norm(u)
+        BA_u = np.cross(BA,u)
+        d = np.linalg.norm(BA_u)/n
+
+        return d
 
     def gradient_descent(self, goal, q_in):
         """
@@ -413,8 +434,8 @@ class IK_Generator(FK_Generator):
         # loss function
         def fun(q):
             fk = self.FK(q)
-            d = self.norm_opti(fk, goal)
-            return d
+            n = self.norm_final(fk, goal)
+            return n
 
         # first guess
         x0 = q_in
@@ -425,6 +446,7 @@ class IK_Generator(FK_Generator):
 
         # optimization algo
         res = scipy.optimize.minimize(fun, x0, method='TNC', jac='2-point' , bounds=bounds)
+
 
         return (res)
 

@@ -306,7 +306,9 @@ class robot_IK_interface(QtWidgets.QWidget):
         self.draw_arm([x, y, z])  # draw the arm
 
         a = rotationMatrixToEulerAngles(R)
-        fk = floatlist2charlist(np.round(np.array([t[0],t[1],t[2],a[0],a[1],a[2]])))
+        a = rad2deg(np.array(a))
+
+        fk = floatlist2charlist(np.round(np.array([t[0],t[1],t[2],a[0],a[1],a[2]]),2))
         self.set_X_output(fk)
 
 
@@ -373,6 +375,7 @@ class robot_IK_interface(QtWidgets.QWidget):
         angles = [float(X[i]) if (X[i] != '') else X[i] for i in range(len(X))]
         self.arm.set_arm_position([0,0,0,0,0,0])
         self.arm.set_arm_position(angles)
+        self.arm.activate_all_reg()
         return 0
 
 

@@ -524,3 +524,46 @@ class DXSerialAPI(serial.Serial):
 
     # -----------------------------------
 
+    # ----------- REG SETTERS -----------
+    def set_reg_goal_position(self, id, position):
+        """
+        This function set the goal position of the motor (id)
+        /!\ this function return the response but also MODIFY THE SETTINGS OF THE MOTOR, be extra cautious
+        :param id: id of the motor
+        :param position: between 0 and 300 (1023 = 0x3FF), the byte unit is around 0.29 degree
+        :return response: the responce given be the motor (id)
+        """
+        if 0 <= position <= 300:
+            if position == 0:
+                position_byte = 0
+            else:
+                position_byte = int(position / self.ANGLE_UNIT)
+
+            var = pseudo_conversion(position_byte)
+            self._REG_WRITE(id, 0x1E, *var)
+            response = self._receive_message()
+            return response
+
+        else:
+            raise ValueError('the position should be between [0 and 300] degree')
+        return 0
+
+    def set_reg_goal_position_byte(self, id, position):
+        """
+        This function is the same that set_goal_position but you choose the byte and not the speed in rpm, this function will be more precise
+        /!\ this function return the response but also MODIFY THE SETTINGS OF THE MOTOR, be extra cautious
+        :param id: id of the motor
+        :param position: between 0 and 1023 = 0x3FF, the byte unit is around 0.29 degree
+        :return response: the responce given be the motor (id)
+        """
+        if 0 <= position <= 0x3FF:
+            var = pseudo_conversion(position)
+            self._REG_WRITE(id, 0x1E, *var)
+            response = self._receive_message()
+            return response
+
+        else:
+            raise ValueError('the position should be between [0 and 1023] degree')
+        return 0
+
+    # -----------------------------------

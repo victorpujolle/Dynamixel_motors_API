@@ -102,7 +102,7 @@ class Arm(DXSerialAPI):
         joint_angles.pop(2)
         self.joint_angles = np.array(joint_angles) - self.ANGLE_OFFSET
 
-        #print(self.joint_angles)
+        print(self.joint_angles)
 
         return 0
 
@@ -164,32 +164,32 @@ class Arm(DXSerialAPI):
 
         if joint_id == 0:
             if self.is_angle_valid(0, angle, error_raising=True):
-                self.set_goal_position(0, angle)
+                self.set_reg_goal_position(0, angle)
 
         if joint_id == 1:
             if self.is_angle_valid(1, angle, error_raising=True) and self.is_angle_valid(2, 300 - angle, error_raising=True):
-                self.set_goal_position(1, angle)
-                self.set_goal_position(2, 300 - angle)
+                self.set_reg_goal_position(1, angle)
+                self.set_reg_goal_position(2, 300 - angle)
 
         if joint_id == 2:
             if self.is_angle_valid(3, angle, error_raising=True):
-                self.set_goal_position(3, angle)
+                self.set_reg_goal_position(3, angle)
 
         if joint_id == 3:
             if self.is_angle_valid(4, angle, error_raising=True):
-                self.set_goal_position(4, angle)
+                self.set_reg_goal_position(4, angle)
 
         if joint_id == 4:
             if self.is_angle_valid(5, angle, error_raising=True):
-                self.set_goal_position(5, angle)
+                self.set_reg_goal_position(5, angle)
 
         if joint_id == 5:
             if self.is_angle_valid(6, angle, error_raising=True):
-                self.set_goal_position(6, angle)
+                self.set_reg_goal_position(6, angle)
 
         if joint_id == 6:
             if self.is_angle_valid(7, angle, error_raising=True):
-                self.set_goal_position(7, angle)
+                self.set_reg_goal_position(7, angle)
 
         return 0
 
@@ -200,7 +200,7 @@ class Arm(DXSerialAPI):
         """
         print('set_arm_position :', angles)
         if len(angles) != self.joint_number:
-            raise ValueError('The length of the input angles : the input list has a length of {} and  this length should be the number of joint {} '.format(len(angles),self.joint_number))
+            raise ValueError('The length of the input angles : the input list has a length of {} and  this length should be the number of joint {}'.format(len(angles),self.joint_number))
 
         for joint in range(self.joint_number):
             if angles[joint] != '':
@@ -208,6 +208,14 @@ class Arm(DXSerialAPI):
                 self.joint_position[joint] = angles[joint]
 
         self.flag_is_position_init = True # the position is now setted
+
+        return 0
+
+    def activate_all_reg(self):
+        """
+        This function send the ACTION message to all motors
+        """
+        self._ACTION(0xFE)
 
         return 0
 
