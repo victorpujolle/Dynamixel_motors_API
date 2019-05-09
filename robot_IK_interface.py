@@ -46,6 +46,10 @@ class robot_IK_interface(QtWidgets.QWidget):
         # init menu
         self.init_menu()
 
+        # init robot position
+        self.arm.initialize_position()
+        self.arm.activate_all_reg()
+
         # init randomness for the sake of reproductability
         np.random.seed(19680801)
 
@@ -280,7 +284,7 @@ class robot_IK_interface(QtWidgets.QWidget):
         self.FigureCanvas.draw()
 
         # take the values of the angles as first guess but with small random deviation
-        q_deg = np.array(charlist2floatlist(self.get_q_values())) + np.random.rand(6)*180 / 100
+        q_deg = np.array(charlist2floatlist(self.get_q_values()))
         self.set_q_values(floatlist2charlist(q_deg))
         q_rad = deg2rad(q_deg)
 
@@ -369,11 +373,10 @@ class robot_IK_interface(QtWidgets.QWidget):
         """
         method linked to the button clear
         """
-        print('--- EVENT :MOVE CLICK ---')
+        print('--- EVENT : MOVE CLICK ---')
         th0, th1, th2, th3, th4, th5 = self.get_q_values()
         X = [th0, th1, th2, th3, th4, th5]
         angles = [float(X[i]) if (X[i] != '') else X[i] for i in range(len(X))]
-        self.arm.set_arm_position([0,0,0,0,0,0])
         self.arm.set_arm_position(angles)
         self.arm.activate_all_reg()
         return 0

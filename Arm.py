@@ -30,7 +30,7 @@ class Arm(DXSerialAPI):
         self.motors_speed_byte = [] # the speed of each motors (byte unit used) (the speed of the motors has to be initialized first)
 
         # class constant init
-        self.ANGLES_INIT = np.array([0, 0, 0, 0, 0, 0]) # angles initialisation of each JOINTS (not motors!!!!)
+        self.ANGLES_INIT = np.array([-30, 45, 0, -90, 0, -90]) # angles initialisation of each JOINTS (not motors!!!!)
         self.DX_SPEED = 100 # speed of the motors
         self.LINKS_LENGTH = [0.045, 0.11, 0.04, 0.04, 0.11, 0.13] # links length
         self.TRANS_ORIGIN = [0, 0, 0.26] # the translation between the origin of the world referecne and the origin of the robot
@@ -198,7 +198,7 @@ class Arm(DXSerialAPI):
         This function sets the position of all the joints
         :param angles: the goal position (degree units)
         """
-        print('set_arm_position :', angles)
+        #print('set_arm_position :', angles)
         if len(angles) != self.joint_number:
             raise ValueError('The length of the input angles : the input list has a length of {} and  this length should be the number of joint {}'.format(len(angles),self.joint_number))
 

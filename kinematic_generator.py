@@ -364,7 +364,7 @@ class IK_Generator(FK_Generator):
 
         return J_plus
 
-    def norm_opti(self, q1, q2):
+    def norm_euclidienne(self, q1, q2):
         """
         defines the norm used to mesure the space during the optimisation
         :param q1: [X,Y,Z,aX,aY,aZ]
@@ -401,7 +401,7 @@ class IK_Generator(FK_Generator):
 
         return [d**2 * theta**2, d, theta]
 
-    def norm_final(self, eef, goal):
+    def norm_direction(self, eef, goal):
         """
         the norm used to control the robot holding the camera
         the line continues the eef, the returned value is the distance between the goal point and this line
@@ -431,21 +431,36 @@ class IK_Generator(FK_Generator):
         :param q_in: initial guess for the angles
         """
 
-        # loss function
-        def fun(q):
+        # loss function used to find the position
+        def loss_direction(q):
             fk = self.FK(q)
-            n = self.norm_final(fk, goal)
+            n = self.norm_direction(fk, goal)
             return n
 
-        # first guess
-        x0 = q_in
+        # loss function used the find a correct first guess
+        def loss_distance(q):
+            fk = self.FK(q)
+            n = self.norm_euclidienne(fk, goal)
+            return n
+
 
         # angles boundaries
         bounds = [(np.pi / 180 * self.Q_MIN[i], np.pi / 180 * self.Q_MAX[i]) for i in range(len(self.Q_MAX))]
         # bounds only for L-BFGS-B, TNC, SLSQP and trust-constr method
 
         # optimization algo
-        res = scipy.optimize.minimize(fun, x0, method='TNC', jac='2-point' , bounds=bounds)
+        # limiting the number of iteration for the first opti
+        options1 = {'eps': 1e-08, 'scale': None, 'offset': None, 'mesg_num': None, 'maxCGit': -1, 'maxiter': 10,
+                   'eta': -1, 'stepmx': 0, 'accuracy': 0, 'minfev': 0, 'ftol': -1, 'xtol': -1, 'gtol': -1,
+                   'rescale': -1, 'disp': False}
+
+        options2 = {'eps': 1e-08, 'scale': None, 'offset': None, 'mesg_num': None, 'maxCGit': -1, 'maxiter': None,
+                   'eta': -1, 'stepmx': 0, 'accuracy': 0, 'minfev': 0, 'ftol': -1, 'xtol': -1, 'gtol': -1,
+                   'rescale': -1, 'disp': False}
+        print('hello there')
+        res0 = scipy.optimize.minimize(loss_distance, q_in, method='TNC', jac='2-point' , bounds=bounds, options=options1)
+        x0 = res0['x']
+        res = scipy.optimize.minimize(loss_direction, x0, method='TNC', jac='2-point' , bounds=bounds, options=options2)
 
 
         return (res)
