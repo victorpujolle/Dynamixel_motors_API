@@ -443,7 +443,6 @@ class IK_Generator(FK_Generator):
             n = self.norm_euclidienne(fk, goal)
             return n
 
-
         # angles boundaries
         bounds = [(np.pi / 180 * self.Q_MIN[i], np.pi / 180 * self.Q_MAX[i]) for i in range(len(self.Q_MAX))]
         # bounds only for L-BFGS-B, TNC, SLSQP and trust-constr method
