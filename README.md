@@ -37,4 +37,4 @@ protocol is the same between all the dynamixel products (this is what they say) 
 you will have to adapt some features for your particular motors.
 
 ## Documentation
-See wiki 
+See comment in the code
